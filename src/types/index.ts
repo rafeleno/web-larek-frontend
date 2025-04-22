@@ -1,5 +1,5 @@
-import { ICart } from '../components/base/cart';
-import { ICardCollection } from '../components/cardCollection';
+import { ICart } from './cart';
+import { ICardCollection } from './cardCollection';
 
 // ШАПКА
 export interface IHeader {

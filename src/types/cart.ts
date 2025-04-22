@@ -1,4 +1,4 @@
-import { ICard } from '../cart';
+import { ICard } from './card';
 
 // Корзина
 export interface ICart {
