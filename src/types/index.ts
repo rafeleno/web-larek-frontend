@@ -1,3 +1,28 @@
+// ШАПКА
+export interface IHeader {
+	cart: ICart;
+	img: string;
+	link: string;
+}
+
+export interface IHeaderView {
+	render(data: { cart: ICart; imageUrl: string; linkUrl: string }): void;
+	hide(): void;
+	onCartClick(): void;
+}
+
+// ГЛАВНАЯ СТРАНИЦА
+export interface IMainPage {
+	cardsCollection: ICardCollection;
+}
+
+export interface IMainPageView {
+	render(data: { cart: ICart; imageUrl: string; linkUrl: string }): void;
+	hide(): void;
+	onCardClick(): void;
+}
+
+// КАРТА
 export type TTag = 'soft' | 'hard' | 'button' | 'another' | 'advanced';
 
 export interface ICard {
@@ -7,18 +32,44 @@ export interface ICard {
 	cardTag: TTag;
 }
 
+export interface ICardModel {
+	addToCart(product: ICard): void;
+	removeFromCart(id: number): void;
+	getCard(): ICard;
+	render(): HTMLElement;
+}
+
+export interface ICardMainView {
+	render(): void;
+	onClick(): void;
+}
+
+export interface ICardModalView {
+	render(): void;
+	onClose(): void;
+	onClick(handler: (id: string) => void): void;
+}
+
+export interface ICardSmallView {
+	render(): void;
+	onRemove(handler: (id: string) => void): void;
+}
+
+// КОЛЛЕКЦИЯ КАРТ
+export interface ICardCollection {
+	cards: ICard[];
+}
+
 export interface ICardCollectionModel {
 	setCards(cards: ICard[]): void;
 	getCards(): ICard[];
 }
 
-export interface ICartModel {
-	addToCart(product: ICard): void;
-	removeFromCart(id: number): void;
-	getCart(): ICard[];
-	render(): HTMLElement;
+export interface ICardCollectionView {
+	render(cards: ICard[]): void;
 }
 
+// ЗАКАЗ
 export type TPayMethod = 'cash' | 'non-cash';
 
 export interface IOrder {
@@ -36,10 +87,19 @@ export interface IOrderModel {
 	reset(): void;
 }
 
-export interface IBucketView {
-	render(cards: ICard[], totalPrice: number): void;
-	hide(): void;
-	onRemove(handler: (id: string) => void): void;
+export interface IOrderStepOneModel {
+	updateField<T extends keyof TPayMethod>(key: T, value: TPayMethod[T]): void;
+	updateField<T extends keyof string>(key: T, value: string): void;
+}
+
+export interface IOrderStepTwoModel {
+	updateField<T extends keyof string>(key: T, value: string): void;
+	updateField<T extends keyof string>(key: T, value: string): void;
+}
+
+export interface IOrderStepThreeModel {
+	totalPrice: number;
+	setTotalPrice(): void;
 }
 
 export interface IOrderStepOneView {
@@ -55,19 +115,30 @@ export interface IOrderStepTwoView {
 }
 
 export interface IOrderStepThreeView {
-	price: number;
+	setPrice(): void;
 	render(): void;
 	hide(): void;
 }
 
-export interface IShopView {
-	renderCards(cards: ICard[]): void;
-	renderCart(cart: ICard): void;
-	handleBuy(handler: (id: number) => void): void;
-	handleRemove(handler: (id: number) => void): void;
+// Корзина
+export interface ICart {
+	cards: ICard[];
+	totalPrice: number;
 }
 
-export interface Controller {
+export interface ICartModel {
+	getTotalPrice(): number;
+	setTotalPrice(): void;
+	getCards(): ICard[];
+	setCards(): ICard[];
+}
+
+export interface ICartView {
+	render(cards: ICard[], totalPrice: number): void;
+	hide(): void;
+}
+
+export interface IController {
 	init(): void;
 }
 
