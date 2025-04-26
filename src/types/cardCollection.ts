@@ -1,15 +1,18 @@
-import { ICard } from './card';
+import { ICardModel } from './card';
 
 // КОЛЛЕКЦИЯ КАРТ
-export interface ICardCollection {
-	cards: ICard[];
-}
 
 export interface ICardCollectionModel {
-	setCards(cards: ICard[]): void;
-	getCards(): ICard[];
+	cards: ICardModel[];
+
+	setCards(cards: ICardModel[]): void;
+	getCards(): ICardModel[];
 }
 
 export interface ICardCollectionView {
-	render(cards: ICard[]): void;
+	render(cards: ICardModel[]): void;
+}
+
+export interface ICardCollectionPresenter {
+	init(): void;
 }

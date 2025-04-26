@@ -1,352 +1,3 @@
-# ENGLISH
-
-# Project Work "Веб-ларек"
-
-Stack: HTML, SCSS, TS, Webpack
-
-Project structure:
-
-- src/ — source files of the project
-- src/components/ — folder with JS components
-- src/components/base/ — folder with base code
-
-Important files:
-
-- src/pages/index.html — main page HTML file
-- src/types/index.ts — file with types
-- src/index.ts — application entry point
-- src/scss/styles.scss — root styles file
-- src/utils/constants.ts — file with constants
-- src/utils/utils.ts — file with utilities
-
-## Installation and Launch
-
-To install and start the project, run the commands
-
-```
-npm install
-npm run start
-```
-
-or
-
-```
-yarn
-yarn start
-```
-
-## Build
-
-```
-npm run build
-```
-
-or
-
-```
-yarn build
-```
-
-## Architecture
-
-### Data
-
-Card (Card methods: 'Add to cart', 'Remove from cart')
-
-- Name
-- Price
-- Image
-- Tag
-
-User
-
-- Email
-- Phone
-- Address
-
-## Components
-
-- Card collection (Methods: 'Load actual cards')
-- Card
-- Cart (modal) (Methods: 'Load cards', 'Place order')
-- Payment and address modal (Methods: 'Return address and payment method')
-- Contacts modal (Methods: 'Return contacts')
-- Order confirmation modal
-
-## Types
-
-### Types were created for class implementation:
-
-### Header
-
-```ts
-export interface IHeader {
-	cart: ICart;
-	img: string;
-	link: string;
-}
-
-export interface IHeaderView {
-	render(data: { cart: ICart; imageUrl: string; linkUrl: string }): void;
-	hide(): void;
-	onCartClick(): void;
-}
-```
-
-### The component lacks a model as it contains no logic, only displays elements and attaches event listeners
-
-#### IHeader
-
-The "Header" class stores information to display it in the header
-
-#### IHeaderView
-
-The "HeaderView" class handles rendering the header and listening to its elements’ events
-
-### MainPage
-
-```ts
-export interface IMainPage {
-	cardsCollection: ICardCollection;
-}
-
-export interface IMainPageView {
-	render(data: { cart: ICart; imageUrl: string; linkUrl: string }): void;
-	hide(): void;
-	onCardClick(): void;
-}
-```
-
-### This component also lacks a model, as it contains no logic, only displays elements and attaches event listeners
-
-#### IMainPage
-
-The "MainPage" class stores information to display on the page
-
-#### IMainPageView
-
-The "MainPageView" class handles displaying the information
-
-### Card
-
-```ts
-export interface ICard {
-	cardName: string;
-	cardDescription: string;
-	cardImage: string;
-	cardTag: TTag;
-}
-
-export interface ICardModel {
-	addToCart(product: ICard): void;
-	removeFromCart(id: number): void;
-	getCard(): ICard;
-	render(): HTMLElement;
-}
-
-export interface ICardMainView {
-	render(): void;
-	onClick(): void;
-}
-
-export interface ICardModalView {
-	render(): void;
-	onClose(): void;
-	onClick(handler: (id: string) => void): void;
-}
-
-export interface ICardSmallView {
-	render(): void;
-	onRemove(handler: (id: string) => void): void;
-}
-```
-
-#### "ICard"
-
-The Card class stores all the information about a specific card
-
-#### "ICardModel"
-
-The CardModel class contains all the logic for interacting with the card
-
-#### "CardMainView, CardModalView, CardSmallView"
-
-These classes are responsible for rendering different variations of the card — on the main page, in the modal, and in the cart
-
-### CardCollection
-
-```ts
-export interface ICardCollection {
-	cards: ICard[];
-}
-
-export interface ICardCollectionModel {
-	setCards(cards: ICard[]): void;
-	getCards(): ICard[];
-}
-
-export interface ICardCollectionView {
-	render(cards: ICard[]): void;
-}
-```
-
-#### "ICardCollection"
-
-The СardCollectionModel class stores the card collection data
-
-#### "ICardCollectionModel"
-
-The CardCollectionModel class is the model. It allows you to get and set the array of cards
-
-#### "ICardCollectionView"
-
-The CardCollectionView class is responsible for displaying the cards
-
-## PayMethod
-
-```ts
-export type TPayMethod = 'cash' | 'non-cash';
-```
-
-#### "TPayMethod"
-
-Type defines payment options
-
-### Order
-
-```ts
-export interface IOrder {
-	userMail: RegExp;
-	userPhone: RegExp;
-	userAddress: string;
-	payMethod: TPayMethod;
-}
-
-export interface IOrderModel {
-	data: Partial<IOrder>;
-	updateField<T extends keyof IOrder>(key: T, value: IOrder[T]): void;
-	getData(): Partial<IOrder>;
-	isComplete(): boolean;
-	reset(): void;
-}
-
-export interface IOrderStepOneView {
-	getData(): { address: string; payMethod: TPayMethod };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepTwoView {
-	getData(): { email: string; phone: string };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepThreeView {
-	price: number;
-	render(): void;
-	hide(): void;
-}
-```
-
-#### "IOrder"
-
-The Order class stores all the information about a specific order
-
-#### "IOrderModel"
-
-The OrderModel class contains all the logic for interacting with the order.  
-It acts like a builder and collects pieces of data at each checkout step
-
-#### "IOrderStepOneModel, IOrderStepTwoModel, IOrderStepThreeModel"
-
-```ts
-export interface IOrderStepOneView {
-	getData(): { address: string; payMethod: TPayMethod };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepTwoView {
-	getData(): { email: string; phone: string };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepThreeView {
-	_price: number;
-	setPrice(): void;
-	render(): void;
-	hide(): void;
-}
-```
-
-OrderStepOneModel, OrderStepTwoModel, and OrderStepThreeModel classes contain the logic for each checkout step modal. They pass data to the order model.  
-Step one is typed for payment method and address, step two for email and phone number, step three can store the final price
-
-#### "IOrderStepOneView, IOrderStepTwoView, IOrderStepThreeView"
-
-```ts
-export interface IOrderStepOneView {
-	getData(): { address: string; payMethod: TPayMethod };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepTwoView {
-	getData(): { email: string; phone: string };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepThreeView {
-	setPrice(): void;
-	render(): void;
-	hide(): void;
-}
-```
-
-OrderStepOneView, OrderStepTwoView, and OrderStepThreeView classes handle the rendering of different steps of the purchase process
-
-### Cart
-
-```ts
-export interface ICart {
-	cards: ICard[];
-	totalPrice: number;
-}
-
-export interface ICartModel {
-	getTotalPrice(): number;
-	setTotalPrice(): void;
-	getCards(): ICard[];
-	setCards(): ICard[];
-}
-
-export interface ICartView {
-	render(cards: ICard[], totalPrice: number): void;
-	hide(): void;
-}
-```
-
-#### ICart
-
-The "Cart" class stores all information about items in the cart
-
-#### ICartModel
-
-The "CartModel" class contains logic. It can get and set the total price of items and manage the cards array
-
-#### ICartView
-
-The "CartView" class handles displaying and hiding the cart
-
-### IController
-
-The "Controller" class — controller
-
-# РУССКИЙ
-
 # Проектная работа "Веб-ларек"
 
 Стек: HTML, SCSS, TS, Webpack
@@ -394,7 +45,7 @@ npm run build
 yarn build
 ```
 
-## Архитектура
+## Архитектура MVP(Model View Presenter)
 
 ### Данные
 
@@ -416,243 +67,537 @@ yarn build
 - Коллекция карт(Методы: 'Загрузить актуальные карты')
 - Карта
 - Конрзина(модалка)(Методы: 'Загрузить карты', 'Оформить заказ')
-- Модалка оплаты и адреса(Методы: 'Вернуть адрес и способ оплаты')
-- Модалка контактов(Методы: 'Вернуть контакты')
+- Родительское модальное окно(Методы: 'Отобразить переданные контент')
+- Модалка оплаты и адреса(Методы: 'Вернуть адрес и способ оплаты') (Насладует родительское модальное окно)\*
+- Модалка контактов(Методы: 'Вернуть контакты') (Насладует родительское модальное окно)\*
 - Модалка заказ оформлен
 
-## Типы
+## Классы
 
-### Для реализации классов были соззданы типы:
+#### Для реализации были соззданы классы:
 
-### Header
+### `Modal`
+
+класс `Modal` расширяет базовый компонент, для работы с модальным окном.
+
+Он нужен для того, чтобы открывать и закрывать модальное окно, заменять содержимое, оповещать остальную часть приложения через систему событий `IEvents`.
+
+Структура
+
+`container: HTMLElement` — корневой HTML-элемент модального окна.
+
+`events: IEvents` — объект для отправки/получения событий.
+
+`\_closeButton: HTMLButtonElement` — кнопка закрытия.
+
+`\_content: HTMLElement` — область для динамического контента.
+
+Методы
+
+`set content(value: HTMLElement): void` - заменяет текущее содержимое в модальном окне.
+
+`open(): void` - делает модальное окно видимым. Вызывает событие modal:open.
+
+`close(): void` - скрывает модальное окно, очищает содержимое, вызывает событие modal:close.
+
+`render(data: IModalData): HTMLElement` - отображает новые данные в модальном окне и открывает его.
+
+Класс имплементирует интерфейс `IModal`:
 
 ```ts
-export interface IHeader {
-	cart: ICart;
-	img: string;
-	link: string;
-}
-
-export interface IHeaderView {
-	render(data: { cart: ICart; imageUrl: string; linkUrl: string }): void;
-	hide(): void;
-	onCartClick(): void;
+export interface IModal {
+	open(): void;
+	close(): void;
+	render(data: IModalData): HTMLElement;
+	content: HTMLElement | null;
 }
 ```
 
-### Компонент обделен моделью, так как не содержит в себе никакой логики, а только отображает элеемнты и вешает слушатели
-
-#### IHeader
-
-Класс "Header" хронит информацию для вывода ее в шапку
-
-#### IHeaderView
-
-Класс "HeaderView" отвечает за вывод шапки и соушатели событый ее элементов
-
-### MainPage
+##### Тип `IModalData` - Типизирует контент принимаемый модальным окном:
 
 ```ts
-export interface IMainPage {
-	cardsCollection: ICardCollection;
+export interface IModalData {
+	content: HTMLElement;
 }
+```
 
+#### Важные детали
+
+Закрытие по кнопке и клику по задниму.
+
+Клик внутри контента не приводит к закрытию модалки.
+
+Общение с внешним миром через IEvents, что делает Modal более гибким.
+
+### `MainPageModel`
+
+Класс `MainPageModel` нужен для того, чтобы управлять коллекцией карточек на главной странице.
+
+`constructor` принимает модель коллекции карточек:
+
+```ts
+constructor(cardCollection: ICardCollectionModel)
+```
+
+Класс `MainPageModel` содержит методы для работы с коллекцией карточек:
+
+- `cardCollection: ICardCollectionModel` - Коллекция карточек.
+- `getCollection(): void` - Метод для получения коллекции карточек.
+- `setCollection(): void` - Метод для установки коллекции карточек.
+
+Класс `MainPageModel` имплементирует интерфейс `IMainPageModel`
+
+```ts
+export interface IMainPageModel {
+	cardCollection: ICardCollectionModel;
+	getCollection(): void;
+	setCollection(): void;
+}
+```
+
+### `MainPageView`
+
+Класс `MainPageView` нужен для того, чтобы отображать коллекцию карточек на главной странице.
+
+`constructor` принимает контейнер для отображения карточек.
+
+```ts
+constructor(container: HTMLElement)
+```
+
+Класс `MainPageView` содержит метод для работы с отображением:
+
+`render(data: ICardCollectionModel): void` - Метод принимает коллекцию карточек и отображает её на странице.
+
+Класс `MainPageView` имплементирует интерфейс `IMainPageView`
+
+```ts
 export interface IMainPageView {
-	render(data: { cart: ICart; imageUrl: string; linkUrl: string }): void;
-	hide(): void;
-	onCardClick(): void;
+	render(data: ICardCollectionModel): void;
 }
 ```
 
-### Компонент тоже обделен моделью, так как не содержит в себе никакой логики, а только отображает элеемнты и вешает слушатели
+### `MainPagePresenter`
 
-#### IMainPage
+Класс `MainPagePresenter` нужен для того, чтобы соединить модель и отображение главной страницы.
 
-Класс "MainPage" хронит информацию для вывода ее на страницу
+Класс `MainPagePresenter` хранит метод для инициализации главной страницы:
 
-#### IMainPageView
+- `init(): void` - Метод для инициализации отображения коллекции карточек.
 
-Класс "MainPageView" отвечает за вывод информации
-
-### Card
+Класс `MainPagePresenter` имплементирует интерфейс `IMainPagePresenter`
 
 ```ts
-export interface ICard {
-	cardName: string;
-	cardDescription: string;
-	cardImage: string;
-	cardTag: TTag;
+export interface IMainPagePresenter {
+	init(): void;
 }
+```
 
+### `HeaderModel`
+
+Класс `HeaderModel` нужен для того, чтобы хранить данные логотипа в шапке сайта(изображжение и ссылку), и элемент корзины в шапке сайта
+
+#### `constructor`
+
+Принимает данные шапи сайте:
+
+```ts
+constructor(logoImg: string, logoLink: string, cartImg: string)
+```
+
+Класс `HeaderModel` содержит данные шапки:
+
+- `logoImg: string;` - Имя карточки
+- `logoLink: string;` - Описание карточки
+- `cartImg: string;` - Изображение корзины
+
+Класс `HeaderModel` имплементирует интерфейс `IHeaderModel`
+
+```ts
+export interface IHeaderModel {
+	logoImg: string;
+	logoLink: string;
+	cartImg: string;
+}
+```
+
+### `HeaderView`
+
+Класс `HeaderView` нужен для того, чтобы отображать шапку сайта
+
+#### `constructor`
+
+Принимает шапку сайта и количестов товаров в корзине
+
+```ts
+constructor(HeaderModel: IHeaderModel, cardsCount: number)
+```
+
+Класс IHeaderView содержит методы для работы с шапкой:
+
+- `render(data: { logoImg: string; logoLink: string; cartImg: string },cardsCount: number): void` - Метод принимает обект шапки и выводит её, а также количестов карт в корзине и выводит это число на элемент корзины.
+- `setOnCartClick(handler: () => void): void` - Метод, суть которого повесить слушатель клика но элемет корзины
+
+Класс `HeaderView` имплементирует интерфейс `IHeaderView`
+
+```ts
+export interface IHeaderView {
+	render(
+		data: { logoImg: string; logoLink: string; cartImg: string },
+		cardsCount: number
+	): void;
+	setOnCartClick(handler: () => void): void;
+}
+```
+
+### `HeaderPresenter`
+
+Класс `HeaderPresenter` нужен для того, чтобы соединить можель и ототбрпажение шапки сайта
+
+Класс `HeaderPresenter` хранит методы для роботы с моделью и отображением шапки сайте
+
+- `init(): void`
+- `cartHandleClick(): void` - Метод клика по корзине
+
+Класс `HeaderPresenter` имплементирует интерфейс `IHeaderPresenter`
+
+```ts
+export interface IHeaderPresenter {
+	init(): void;
+	cartHandleClick(): void;
+}
+```
+
+### `CardModel`
+
+Класс `CardModel` нужен для того, чтобы хранить информацию о карте товара, добавлять или удалять ее из корзины, получать ее данные
+
+#### `constructor`
+
+Принимает данные кары
+
+```ts
+constructor(cardName: string, cardDescription: string, cardImage: string, cardTag: TCategory)
+```
+
+##### Тип `TCategory` - содержит в себе все возможные теги карты:
+
+```ts
+export type TCategory =
+	| 'софт-скил'
+	| 'хард-скил'
+	| 'кнопка'
+	| 'другое'
+	| 'дополнительное';
+```
+
+Класс `CardModel` содержит данные карты:
+
+- `id: string;`
+- `image: string;`
+- `price: string;`
+- `cardName: string;`
+- `description: string;`
+- `category: TCategory;`
+
+и методы для работы с картой:
+
+- `addToCart(id: string): void` - Метод добавления карты в корзину
+- `removeFromCart(id: number): void` - Метод удаления карты из корзины
+- `getCard(): ICardModel` Метод получения данных карты
+
+Класс `CardModel` имплементирует интерфейс `ICardModel`
+
+```ts
 export interface ICardModel {
-	addToCart(product: ICard): void;
-	removeFromCart(id: number): void;
-	getCard(): ICard;
-	render(): HTMLElement;
-}
+	id: string;
+	image: string;
+	price: string;
+	cardName: string;
+	description: string;
+	category: TCategory;
 
+	addToCart(product: ICardModel): void;
+	removeFromCart(id: number): void;
+	getCard(): ICardModel;
+}
+```
+
+### `CardMainView`
+
+Класс `CardMainView` нужен для того, чтобы отображать главную версию карты и вешать на нее слушатель события
+
+#### `constructor`
+
+Принимает контейнер
+
+```ts
+constructor(container: HTMLElement)
+```
+
+Класс `CardMainView` содержит методы для работы с картой:
+
+- `render(): void` - Метод вывода карты
+- `onClick(): void` - Метод клика по карте
+
+Класс `CardMainView` имплементирует интерфейс `ICardMainView`
+
+```ts
 export interface ICardMainView {
 	render(): void;
-	onClick(): void;
-}
-
-export interface ICardModalView {
-	render(): void;
-	onClose(): void;
 	onClick(handler: (id: string) => void): void;
 }
+```
 
+### `CardModalView`
+
+Класс `CardModalView` нужен для того, чтобы отображать карту в виде модального окна и вешать на нее слушатель события
+
+#### `constructor`
+
+Принимает данные карты
+
+```ts
+constructor(container: HTMLElement)
+```
+
+Класс CardModalView содержит методы для работы с картой:
+
+- `render(): void` - Метод отображения карты
+- `onClick(handler: (id: string) => void): void` - Метод клика для добавления карты в корзину
+
+Класс CardMainView имплементирует интерфейс ICardModalView, который в свою очередь имплементирует IModalView(Рассмотрен отдельно)
+
+```ts
+export interface ICardModalView extends IModalData {
+	render(): void;
+	onClick(handler: (id: string) => void): void;
+}
+```
+
+### `CardSmallView`
+
+Класс `CardSmallView` нужен для того, чтобы отображать карту маленького вида и вешать на нее слушатель события
+
+#### `constructor`
+
+Примет данные карты
+
+```ts
+constructor(container: HTMLElement)
+```
+
+Класс CardSmallView содержит методы для работы с картой:
+
+- `render(): void` - Метод отображения карты
+- `onRemove(handler: (id: string) => void): void` - Метод слушаетля удаления карты
+
+Класс `CardSmallView` имплементирует интерфейс `ICardSmallView`
+
+```ts
 export interface ICardSmallView {
 	render(): void;
 	onRemove(handler: (id: string) => void): void;
 }
 ```
 
-#### "ICard"
+<!--
 
-Класс Card будет хранит всю информацию о конкретной карте
 
-#### "ICardModel"
 
-Класс CardModel будет Хранит всю логику для взаимодействия с картой
 
-#### "CardMainView, CardModalView, CardSmallView"
 
-Классы CardMainView, CardModalView, CardSmallView Отвечают за отображение разных вариантов карточки - на главной странице, в контексте попапа и в корзине
 
-### CardCollection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -->
+
+### `CardCollectionModel`
+
+Класс `CardCollectionModel` нужен для того, хранить все карточки и отдавать или принимать их
+
+#### `constructor`
+
+Принимает данные карточек
 
 ```ts
-export interface ICardCollection {
-	cards: ICard[];
-}
+constructor(cards CardModel[])
+```
 
+Класс CardCollectionModel содержит данные карточек:
+
+- `cards: ICardModel[]` - Массив карточек
+
+и методы для работы с карточками:
+
+- `setCards(cards: ICardModel[]): void` - Метод для передачи нового масива карточек
+- `getCards(): ICardModel[]` - Метод для получения актуального массива карточек
+
+Класс `CardCollectionModel` имплементирует интерфейс `ICardCollectionModel`
+
+```ts
 export interface ICardCollectionModel {
+	cards: ICard[];
+
 	setCards(cards: ICard[]): void;
 	getCards(): ICard[];
 }
+```
 
+### `CardCollectionView`
+
+Класс `CardCollectionView` нужен для того, чтобы отображать коллекцию карточек на главной странице
+
+Класс `CardCollectionView` содержит метод для рендера карточек:
+
+- `render(cards: ICardModel[]): void`
+
+Имплементирует интерфейс `ICardCollectionView`
+
+```ts
 export interface ICardCollectionView {
-	render(cards: ICard[]): void;
+	render(cards: ICardModel[]): void;
 }
 ```
 
-#### "ICardCollection"
+### `OrderModel`
 
-Класс СardCollectionModel будет хранит данные коллекции
+Класс `OrderModel` хранит все данные нужные для оформления заказа, написан как `Bulder` и имеет методы для сбора этих данных поэтапно. Имеет соответствующие рерулярки для пороврки и методы валидации и сброса.
 
-#####"ICardCollectionModel"
+`construnctor` принимает список карт:
 
-Класс ardCollectionModel модель. дает возможность забрать и отдать массив карт
+```ts
+constructor(cards: ICardModel[])
+```
 
-#### "ICardCollectionView"
+свойсвта класса:
 
-Класс CardCollectionView займется выводом карточек
+- `cards: ICardModel[]`
+- `data: Partial<IOrderModel>` - Некоторое колличетво данных заказа, для того чтобы можно было добавлять постепенно
+- `userMail: string`
+- `userMailRegExp: RegExp` - Регулярка Почты
+- `userPhone: string`
+- `userPhoneRegExp: RegExp` - Регулярка Номера телефона
+- `userAddress: string`
+- `payMethod: TPayMethod` - тип оплаты
 
-## PayMethod
+##### Тип `TPayMethod` типизирует варианты оплаты
 
 ```ts
 export type TPayMethod = 'cash' | 'non-cash';
 ```
 
-#### "TPayMethod"
+методы класса:
 
-Типизирует варианты оплаты
+- `updateField<T extends keyof IOrderModel>(key: T, value: IOrderModel[T]):-void`
+- `isValid(): boolean`
+- `getData(): Partial<IOrderModel>`
+- `isComplete(): boolean`
+- `reset(): void`
 
-### Order
+Класс имплементирует интерфейс `IOrderModel`
 
 ```ts
-export interface IOrder {
-	userMail: RegExp;
-	userPhone: RegExp;
+export interface IOrderModel {
+	cards: ICardModel[];
+	data: Partial<IOrderModel>;
+	userMail: string;
+	userMailRegExp: RegExp;
+	userPhone: string;
+	userPhoneRegExp: RegExp;
 	userAddress: string;
 	payMethod: TPayMethod;
-}
-
-export interface IOrderModel {
-	data: Partial<IOrder>;
-	updateField<T extends keyof IOrder>(key: T, value: IOrder[T]): void;
-	getData(): Partial<IOrder>;
+	// TODO: Переделать доку
+	addCard(): void;
+	updateField<T extends keyof IOrderModel>(key: T, value: IOrderModel[T]): void;
+	isValid(): boolean;
+	getData(): Partial<IOrderModel>;
 	isComplete(): boolean;
 	reset(): void;
 }
-
-export interface IOrderStepOneView {
-	getData(): { address: string; payMethod: TPayMethod };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepTwoView {
-	getData(): { email: string; phone: string };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepThreeView {
-	price: number;
-	render(): void;
-	hide(): void;
-}
 ```
 
-#### "IOrder"
+Классы `IOrderStepOneView`, `IOrderStepTwoView`, `IOrderStepTwoView` расширены классом `IModalView` и нужны для отображения всех этапов оформления заказа.
 
-Класс Order будет хранить всю информацию о конкретной карте
+Они хранят элементы, нужные для взаимодействия:
 
-#### "IOrderModel"
+- `payMethodOnlineButton: HTMLButtonElement`
+- `payMethodCashButton: HTMLButtonElement`
+- `userAddressInput: HTMLInputElement`
+- `userMailInput: HTMLInputElement`
+- `OrderStepOneSubmit: HTMLButtonElement`
+- `OrderStepTwoSubmit: HTMLButtonElement`
+- `OrderStepThreeSubmit: HTMLButtonElement`
 
-Класс OrderModel будет хранит всю логику для взаимодействия с картой.\
-Он выполнен как билдер и на каждом этапе оформления заказа будет собирать части данных для оформления заказа
+И методы отвечающие за добавление слушателей нажатия на Submit:
 
-#### "IOrderStepOneModel, IOrderStepTwoModel, IOrderStepThreeModel"
+- `	onSubmit(handler: () => void): void`
+
+И за вывод:
+
+- `	render(): void`
+
+Все они имплементируют соответсвующие интерфейсы:
 
 ```ts
-export interface IOrderStepOneView {
-	getData(): { address: string; payMethod: TPayMethod };
+export interface IOrderStepOneView extends IModalData {
+	payMethodOnlineButton: HTMLButtonElement;
+	payMethodCashButton: HTMLButtonElement;
+	userAddressInput: HTMLInputElement;
+	OrderStepOneSubmit: HTMLButtonElement;
+
+	onSubmit(handler: () => void): void;
 	render(): void;
-	hide(): void;
 }
 
-export interface IOrderStepTwoView {
-	getData(): { email: string; phone: string };
+export interface IOrderStepTwoView extends IModalData {
+	userMailInput: HTMLInputElement;
+	userPhoneInput: HTMLInputElement;
+	OrderStepTwoSubmit: HTMLButtonElement;
+
+	onSubmit(handler: () => void): void;
 	render(): void;
-	hide(): void;
 }
 
-export interface IOrderStepThreeView {
-	_price: number;
-	setPrice(): void;
+export interface IOrderStepThreeView extends IModalData {
+	price: string;
+	OrderStepThreeSubmit: HTMLButtonElement;
+	onSubmit(handler: () => void): void;
 	render(): void;
-	hide(): void;
 }
 ```
 
-Классы OrderStepOneModel, OrderStepTwoModel, OrderStepThreeModel хранят логику окон шагов покупки. Они умеют отпралять данные в модель оформления заказа. Функции первого шага заранее типизированы под тип оплаты и адрес, функции второго под email и номер телефона, третий может хранить итоговую стоимость
+Класс `IOrderPresenter` - нужен для того, чтобы соеденить модель заказа с разными его этапами. Умеет отправлять данные заказа и соединять эти компоненты
 
-#### "IOrderStepOneView, IOrderStepTwoView, IOrderStepThreeView"
+хранит соответсвующие методы:
+
+- `getDataStepOne(): { address: string; payMethod: TPayMethod }`
+- `getDataStepTwo(): { email: string; phone: string }`
+- `init(): void`
+
+Имплементирует интерфейс `IOrderPresenter`:
 
 ```ts
-export interface IOrderStepOneView {
-	getData(): { address: string; payMethod: TPayMethod };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepTwoView {
-	getData(): { email: string; phone: string };
-	render(): void;
-	hide(): void;
-}
-
-export interface IOrderStepThreeView {
-	setPrice(): void;
-	render(): void;
-	hide(): void;
+export interface IOrderPresenter {
+	getDataStepOne(): { address: string; payMethod: TPayMethod };
+	getDataStepTwo(): { email: string; phone: string };
+	init(): void;
 }
 ```
-
-Классы OrderStepOneView, OrderStepTwoView, OrderStepThreeView занимаются отображением разных этапов покупки
 
 ### Cart
 
@@ -675,18 +620,77 @@ export interface ICartView {
 }
 ```
 
-#### ICart
+#### `CartModel`
 
-Класс "Cart" хранит всю информацию о таварах в корзине
+Класс "Cart" хранит карты добавленные в корзину, их цены и умеет считать финальную стоимость, принимать ее, если потребуется. Умеет принимать и отдавать карты в корзине и обнулять их список
 
-#### ICartModel
+`constructor` принимает карты добавленные в корзину:
 
-Класс "CartModel" - логика. Он умеет получать и отдовать общую стоимость товаров товаров, также получать и отдовать сами карты
+```ts
+constructor(cardsinCart: ICardModel[])
+```
 
-#### ICartView
+Свойства класса:
 
-Класс "CartView" - Отображение. Он отображать корзину и прятать ее
+- `totalPrice: number`
+- `cardsInCart: ICardModel[]`
 
-### IController
+Методы:
 
-Класс "Controller" - контроллер
+- `getTotalPrice(): number`
+- `setTotalPrice(): void`
+- `getCards(): ICardModel[]`
+- `setCards(): ICardModel[]`
+- `reset(): void`
+
+Имплементирует интерфейс `ICartModel`:
+
+```ts
+export interface ICartModel {
+	totalPrice: number;
+	cardsInCart: ICardModel[];
+	getTotalPrice(): number;
+	setTotalPrice(): void;
+	getCards(): ICardModel[];
+	setCards(): ICardModel[];
+	reset(): void;
+}
+```
+
+#### `CartView`
+
+Класс "CartView" - отображает корзину вещает на нее слушатель события `submit`
+
+Методы:
+
+```ts
+	onSubmit(handler: () => void): void;
+	render(data: { cards: ICardModel[]; totalPrice: number }): void;
+```
+
+Имплементирует интерфейс `ICartView` расширенный от `IModalData`:
+
+```ts
+export interface ICartView extends IModalData {
+	onSubmit(handler: () => void): void;
+	render(data: { cards: ICardModel[]; totalPrice: number }): void;
+}
+```
+
+#### `CartPresenter`
+
+Класс "CartPresenter" - нужен для связи модели и отображения корзины. он умеет рендерить корзину.
+
+Методы:
+
+- `renderOrderStepOne(): void`
+- `init(): void`
+
+Имплементирует интерфейс `ICartPresenter`:
+
+```ts
+export interface ICartPresenter {
+	renderOrderStepOne(): void;
+	init(): void;
+}
+```

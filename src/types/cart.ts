@@ -1,23 +1,23 @@
-import { ICard } from './card';
+import { IModalData } from '../components/common/modal';
+import { ICardModel } from './card';
 
 // Корзина
-export interface ICart {
-	cards: ICard[];
-	totalPrice: number;
-}
-
 export interface ICartModel {
+	totalPrice: number;
+	cardsInCart: ICardModel[];
 	getTotalPrice(): number;
 	setTotalPrice(): void;
-	getCards(): ICard[];
-	setCards(): ICard[];
+	getCards(): ICardModel[];
+	setCards(): ICardModel[];
+	reset(): void;
 }
 
-export interface ICartView {
-	render(data: { cards: ICard[]; totalPrice: number }): void;
-	hide(): void;
+export interface ICartView extends IModalData {
+	onSubmit(handler: () => void): void;
+	render(data: { cards: ICardModel[]; totalPrice: number }): void;
 }
 
-export interface IController {
+export interface ICartPresenter {
+	renderOrderStepOne(): void;
 	init(): void;
 }

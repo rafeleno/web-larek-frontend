@@ -1,32 +1,41 @@
-// КАРТА
-export type TTag = 'soft' | 'hard' | 'button' | 'another' | 'advanced';
+import { IModalData } from '../components/common/modal';
 
-export interface ICard {
-	cardName: string;
-	cardDescription: string;
-	cardImage: string;
-	cardTag: TTag;
-}
+// КАРТА
+export type TCategory =
+	| 'софт-скил'
+	| 'хард-скил'
+	| 'кнопка'
+	| 'другое'
+	| 'дополнительное';
 
 export interface ICardModel {
-	addToCart(product: ICard): void;
+	id: string;
+	image: string;
+	price: string;
+	cardName: string;
+	description: string;
+	category: TCategory;
+
+	addToCart(id: string): void;
 	removeFromCart(id: number): void;
-	getCard(): ICard;
-	render(): HTMLElement;
+	getCard(): ICardModel;
 }
 
 export interface ICardMainView {
 	render(): void;
-	onClick(): void;
+	onClick(handler: (id: string) => void): void;
 }
 
-export interface ICardModalView {
+export interface ICardModalView extends IModalData {
 	render(): void;
-	onClose(): void;
 	onClick(handler: (id: string) => void): void;
 }
 
 export interface ICardSmallView {
 	render(): void;
 	onRemove(handler: (id: string) => void): void;
+}
+
+export interface ICardPresenter {
+	init(): void;
 }
