@@ -13,7 +13,7 @@ export interface IOrderModel {
 	userPhoneRegExp: RegExp;
 	userAddress: string;
 	payMethod: TPayMethod;
-	// TODO: Переделать доку
+
 	addCard(): void;
 	updateField<T extends keyof IOrderModel>(key: T, value: IOrderModel[T]): void;
 	isValid(): boolean;
@@ -21,12 +21,6 @@ export interface IOrderModel {
 	isComplete(): boolean;
 	reset(): void;
 }
-
-//  TODO: `Данные форма должна отдавать при любом изменении данных.
-//  Вам нужно посмотреть в оно тебе надо базовый компонент формы,
-//  там это показано. Данные отдаются, презентер слушает, отдает в модель.
-//  Модель валидирует же и результат валидации отдает событие,
-//  презентер снова слушает и отдает форме`;
 
 export interface IOrderStepOneView extends IModalData {
 	payMethodOnlineButton: HTMLButtonElement;
@@ -57,5 +51,7 @@ export interface IOrderStepThreeView extends IModalData {
 export interface IOrderPresenter {
 	getDataStepOne(): { address: string; payMethod: TPayMethod };
 	getDataStepTwo(): { email: string; phone: string };
+	valid(value: boolean): void;
+	errors(value: string): void;
 	init(): void;
 }
