@@ -8,9 +8,7 @@ export interface IOrderModel {
 	cards: ICardModel[];
 	data: Partial<IOrderModel>;
 	userMail: string;
-	userMailRegExp: RegExp;
 	userPhone: string;
-	userPhoneRegExp: RegExp;
 	userAddress: string;
 	payMethod: TPayMethod;
 

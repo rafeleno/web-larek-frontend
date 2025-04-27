@@ -489,9 +489,7 @@ constructor(cards: ICardModel[])
 - `cards: ICardModel[]`
 - `data: Partial<IOrderModel>` - Некоторое колличетво данных заказа, для того чтобы можно было добавлять постепенно
 - `userMail: string`
-- `userMailRegExp: RegExp` - Регулярка Почты
 - `userPhone: string`
-- `userPhoneRegExp: RegExp` - Регулярка Номера телефона
 - `userAddress: string`
 - `payMethod: TPayMethod` - тип оплаты
 
@@ -516,12 +514,10 @@ export interface IOrderModel {
 	cards: ICardModel[];
 	data: Partial<IOrderModel>;
 	userMail: string;
-	userMailRegExp: RegExp;
 	userPhone: string;
-	userPhoneRegExp: RegExp;
 	userAddress: string;
 	payMethod: TPayMethod;
-	// TODO: Переделать доку
+
 	addCard(): void;
 	updateField<T extends keyof IOrderModel>(key: T, value: IOrderModel[T]): void;
 	isValid(): boolean;
@@ -587,6 +583,8 @@ export interface IOrderStepThreeView extends IModalData {
 
 - `getDataStepOne(): { address: string; payMethod: TPayMethod }`
 - `getDataStepTwo(): { email: string; phone: string }`
+- `valid(value: boolean): void` - презентер снова слушает и отдает форме
+- `errors(value: string): void` - презентер снова слушает и отдает форме
 - `init(): void`
 
 Имплементирует интерфейс `IOrderPresenter`:
@@ -595,6 +593,8 @@ export interface IOrderStepThreeView extends IModalData {
 export interface IOrderPresenter {
 	getDataStepOne(): { address: string; payMethod: TPayMethod };
 	getDataStepTwo(): { email: string; phone: string };
+	valid(value: boolean): void;
+	errors(value: string): void;
 	init(): void;
 }
 ```
