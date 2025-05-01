@@ -3,7 +3,7 @@ import { ensureElement } from '../../utils/utils';
 import { IEvents } from '../base/events';
 
 export interface IModalData {
-	content: HTMLElement;
+	content?: HTMLElement;
 }
 
 export class Modal extends Component<IModalData> {
@@ -31,12 +31,22 @@ export class Modal extends Component<IModalData> {
 	open() {
 		this.container.classList.add('modal_active');
 		this.events.emit('modal:open');
+		window.addEventListener('keydown', this.escCloser);
 	}
+
+	// Не теряем контекст
+	escCloser = (e: KeyboardEvent) => {
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			this.close();
+		}
+	};
 
 	close() {
 		this.container.classList.remove('modal_active');
 		this.content = null;
 		this.events.emit('modal:close');
+		window.removeEventListener('keydown', this.escCloser);
 	}
 
 	render(data: IModalData): HTMLElement {
