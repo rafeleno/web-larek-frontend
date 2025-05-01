@@ -57,7 +57,6 @@ export class CartView extends Modal {
 		const content = ensureElement<HTMLTemplateElement>(
 			'#basket'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;
-		console.log(content);
 
 		// Корзина
 		if (!content)
@@ -101,6 +100,8 @@ export class CartView extends Modal {
 		});
 
 		data.content = content;
+		console.log(data.content);
+
 		return super.render(data);
 	}
 }

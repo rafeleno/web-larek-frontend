@@ -56,7 +56,7 @@ events.on('card:click', (data: ICardModel) => {
 
 const Cart = new CartModel();
 const CartV = new CartView(
-	ensureElement<HTMLElement>('.page'),
+	ensureElement<HTMLElement>('#modal-container'),
 	Cart,
 	CardsApi,
 	events
