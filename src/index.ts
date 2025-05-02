@@ -5,7 +5,7 @@ import {
 	CardCollectionModel,
 	CardCollectionView,
 } from './components/CardCollection';
-import { CartModel, CartView } from './components/cart';
+import { BasketCardData, CartModel, CartView, Id } from './components/cart';
 import './scss/styles.scss';
 import { ICardModel } from './types/card';
 
@@ -51,6 +51,7 @@ const CModal: CardModal = new CardModal(
 
 events.on('card:click', (data: ICardModel) => {
 	CModal.model = data;
+
 	CModal.render({});
 });
 
@@ -61,5 +62,12 @@ const CartV = new CartView(
 	CardsApi,
 	events
 );
+
+// TODO: Ввместо id передается первый его символ и запрос, потом второй его символ и и запрос итд
+events.on('card:buy', (data: Id[]) => {
+	Cart.addCards(data);
+
+	CartV.render({});
+});
 
 CartV.render({});

@@ -4,7 +4,8 @@ import { Api } from './base/api';
 import { IEvents } from './base/events';
 import { IModalData, Modal } from './common/modal';
 
-type Id = string;
+//TODO: Перенести и сделать общим
+export type Id = string;
 
 export class CartModel {
 	_cards: Id[];
@@ -27,7 +28,7 @@ export class CartModel {
 	}
 }
 
-type BasketCardData = Pick<ICardModel, 'id' | 'title' | 'price'>;
+export type BasketCardData = Pick<ICardModel, 'id' | 'title' | 'price'>;
 
 export class CartView extends Modal {
 	constructor(
@@ -41,6 +42,9 @@ export class CartView extends Modal {
 
 	// Перенести в модель(Chatgpt, пока оставь это тут!)
 	private async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
+		console.log('ids');
+		console.log(ids);
+
 		const requests = ids.map((id) => this.Api.get(`/product/${id}`));
 		const responses = await Promise.all(requests);
 		return responses as BasketCardData[];
@@ -86,7 +90,7 @@ export class CartView extends Modal {
 			if (!basketItem)
 				throw new Error('Шаблон пустой или не содержит корневой элемент');
 
-			const cardTitle = ensureElement<HTMLElement>('.basket__item', basketItem);
+			const cardTitle = ensureElement<HTMLElement>('.card__title', basketItem);
 			const cardPrice = ensureElement<HTMLElement>('.card__price', basketItem);
 			const basketItemDelete = ensureElement<HTMLButtonElement>(
 				'.basket__item-delete',
@@ -100,12 +104,12 @@ export class CartView extends Modal {
 		});
 
 		data.content = content;
-		console.log(data.content);
 
 		return super.render(data);
 	}
 }
 
+//
 // export class CartView extends Modal {
 // 	constructor(
 // 		protected container: HTMLElement,

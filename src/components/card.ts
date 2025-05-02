@@ -2,7 +2,6 @@ import { ICardModel, TCategory } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { IEvents } from './base/events';
 import { IModalData, Modal } from './common/modal';
-import { CardCollectionModel } from './CardCollection';
 
 export class Card implements ICardModel {
 	id: string;
@@ -84,7 +83,7 @@ export class CardModal extends Modal {
 	constructor(
 		protected container: HTMLElement,
 		private _model: ICardModel,
-		protected events: IEvents,
+		public events: IEvents,
 		protected CDN: string
 	) {
 		super(container, events);
@@ -114,6 +113,10 @@ export class CardModal extends Modal {
 			this._model.title;
 		ensureElement<HTMLElement>('.card__text', content).textContent =
 			this._model.description;
+		ensureElement<HTMLButtonElement>('.card__button', content).addEventListener(
+			'click',
+			() => this.events.emit('card:buy', this._model.id.split(','))
+		);
 		ensureElement<HTMLElement>('.card__price', content).textContent =
 			this._model.price + ' Синапсов';
 
