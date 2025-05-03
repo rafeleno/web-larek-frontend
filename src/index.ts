@@ -63,7 +63,6 @@ const CartV = new CartView(
 	events
 );
 
-// TODO: Ввместо id передается первый его символ и запрос, потом второй его символ и и запрос итд
 events.on('card:buy', (data: Id[]) => {
 	Cart.addCards(data);
 
