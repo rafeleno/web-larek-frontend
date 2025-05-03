@@ -6,6 +6,7 @@ import {
 	CardCollectionView,
 } from './components/CardCollection';
 import { BasketCardData, CartModel, CartView, Id } from './components/cart';
+import { HeaderModel, HeaderView } from './components/header';
 import './scss/styles.scss';
 import { ICardModel } from './types/card';
 
@@ -65,8 +66,21 @@ const CartV = new CartView(
 
 events.on('card:buy', (data: Id[]) => {
 	Cart.addCards(data);
+	HeaderV.updateCounter();
+});
+events.on('cart:cardRemoved', (data: BasketCardData) => {
+	Cart.removeCards(data.id);
 
-	CartV.render({});
+	console.log(100);
 });
 
-CartV.render({});
+const headerContainer = ensureElement<HTMLElement>('header');
+
+const Header = new HeaderModel(Cart);
+const HeaderV = new HeaderView(headerContainer, Header, events);
+
+events.on('cart:click', () => {
+	CartV.render({});
+	Header.updateCounter();
+});
+HeaderV.render();

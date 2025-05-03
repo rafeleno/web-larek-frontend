@@ -2,6 +2,7 @@ import { ICardModel } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { Api } from './base/api';
 import { IEvents } from './base/events';
+import { Card } from './card';
 import { IModalData, Modal } from './common/modal';
 
 //TODO: Перенести и сделать общим
@@ -17,6 +18,12 @@ export class CartModel {
 
 	addCards(newCards: Id[]): void {
 		this._cards.push(...newCards);
+	}
+
+	removeCards(id: Id): void {
+		this._cards.filter((item) => {
+			item !== id;
+		});
 	}
 
 	set cards(value: Id[]) {
@@ -42,19 +49,19 @@ export class CartView extends Modal {
 
 	// Перенести в модель(Chatgpt, пока оставь это тут!)
 	private async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
-		console.log('ids');
-		console.log(ids);
-
 		const requests = ids.map((id) => this.Api.get(`/product/${id}`));
 		const responses = await Promise.all(requests);
 		return responses as BasketCardData[];
 	}
+
+	updateCards() {}
 
 	render(data: IModalData): HTMLElement {
 		void this.renderAsync(data);
 		return this.container;
 	}
 
+	// Костыль
 	private async renderAsync(data: IModalData): Promise<HTMLElement> {
 		const cards = await this.fetchCards(this._model._cards);
 
@@ -92,14 +99,16 @@ export class CartView extends Modal {
 
 			const cardTitle = ensureElement<HTMLElement>('.card__title', basketItem);
 			const cardPrice = ensureElement<HTMLElement>('.card__price', basketItem);
-			// const basketItemDelete = ensureElement<HTMLButtonElement>(
-			// 	'.basket__item-delete',
-			// 	basketItem
-			// );
+			const basketItemDelete = ensureElement<HTMLButtonElement>(
+				'.basket__item-delete',
+				basketItem
+			);
 
 			cardTitle.textContent = card.title;
 			cardPrice.textContent = card.price + ' синапсов';
-			// TODO: basketItemDelete onClick
+			basketItemDelete.addEventListener('click', () =>
+				this.events.emit('cart:cardRemoved', card)
+			);
 			basketList.append(basketItem);
 		});
 
