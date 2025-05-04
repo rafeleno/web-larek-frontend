@@ -7,8 +7,9 @@ import {
 } from './components/CardCollection';
 import { BasketCardData, CartModel, CartView, Id } from './components/cart';
 import { HeaderModel, HeaderView } from './components/header';
+import { OrderModel, OrderStepOneModal } from './components/order';
 import './scss/styles.scss';
-import { ICardModel } from './types/card';
+import { ICardData } from './types/card';
 
 import { API_URL, CDN_URL, settings } from './utils/constants';
 import { ensureElement } from './utils/utils';
@@ -17,10 +18,13 @@ const events = new EventEmitter();
 
 const CardsApi = new Api(API_URL, settings);
 
+const emailRegExp = /^[\p{L}0-9._%+-]+@[\p{L}0-9.-]+\.[\p{L}]{2,}$/u;
+
 const CardCollectionContainer = ensureElement<HTMLElement>('.gallery');
+const modalContainer = ensureElement<HTMLElement>('#modal-container');
 
 // офлайн пример
-const exampleCards: ICardModel[] = [
+const exampleCards: ICardData[] = [
 	{
 		id: 'ajdlajdlkjalsdk',
 		image: '/ladjla',
@@ -57,7 +61,7 @@ const exampleCards: ICardModel[] = [
 
 // Init
 CardsApi.get('/product/').then((res) => {
-	const data = res as { items: ICardModel[] };
+	const data = res as { items: ICardData[] };
 
 	const CardCollection = new CardCollectionModel(data.items);
 	const CrdCollectionView = new CardCollectionView(
@@ -73,7 +77,7 @@ CardsApi.get('/product/').then((res) => {
 
 // // Пример;
 const ModalCard: CardModal = new CardModal(
-	ensureElement<HTMLElement>('#modal-container'),
+	modalContainer,
 	{
 		id: '666',
 		description: 'example',
@@ -86,17 +90,17 @@ const ModalCard: CardModal = new CardModal(
 	CDN_URL
 );
 
-events.on('card:click', (data: ICardModel) => {
+events.on('card:click', (data: ICardData) => {
 	ModalCard.model = data;
 
-	ModalCard.render({});
+	ModalCard.render();
 });
 
-const Cart = new CartModel();
+const Cart = new CartModel(CardsApi);
 const CartV = new CartView(
-	ensureElement<HTMLElement>('#modal-container'),
+	modalContainer,
 	Cart,
-	CardsApi,
+
 	events
 );
 
@@ -108,9 +112,6 @@ events.on('card:buy', (data: Id[]) => {
 events.on('cart:cardRemoved', (data: BasketCardData) => {
 	Cart.removeCards(data.id);
 	CartV.updateCards();
-
-	console.log(Cart._cards);
-	console.log(Cart._price);
 });
 
 const headerContainer = ensureElement<HTMLElement>('header');
@@ -119,7 +120,67 @@ const Header = new HeaderModel(Cart);
 const HeaderV = new HeaderView(headerContainer, Header, events);
 
 events.on('cart:click', () => {
-	CartV.render({});
+	CartV.render();
 	Header.updateCounter();
 });
 HeaderV.render();
+
+const Order = new OrderModel();
+const StepOneModal = new OrderStepOneModal(modalContainer, events);
+
+const StepOneModalAddressInput = ensureElement<HTMLInputElement>(
+	'[name="address"]',
+	StepOneModal.formContent
+);
+
+events.on('order:card', () => {
+	Order.addData({ payment: 'non-cash' });
+
+	if (
+		Order.stepOneIsValid({
+			value: StepOneModalAddressInput.value,
+			regExp: emailRegExp,
+			Modal: StepOneModal,
+		})
+	) {
+		StepOneModal.formButton.removeAttribute('disabled');
+	} else {
+		StepOneModal.formButton.disabled = true;
+	}
+
+	console.log(Order.payment);
+});
+
+events.on('order:cash', () => {
+	Order.addData({ payment: 'cash' });
+
+	if (
+		Order.stepOneIsValid({
+			value: StepOneModalAddressInput.value,
+			regExp: emailRegExp,
+			Modal: StepOneModal,
+		})
+	) {
+		StepOneModal.formButton.removeAttribute('disabled');
+	} else {
+		StepOneModal.formButton.disabled = true;
+	}
+
+	console.log(Order.payment);
+});
+
+events.on('addressInput:input', () => {
+	if (
+		Order.stepOneIsValid({
+			value: StepOneModalAddressInput.value,
+			regExp: emailRegExp,
+			Modal: StepOneModal,
+		})
+	) {
+		StepOneModal.formButton.removeAttribute('disabled');
+	} else {
+		StepOneModal.formButton.disabled = true;
+	}
+});
+
+// TODO: Возможно лучне передавать элементы во View(да)

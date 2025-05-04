@@ -304,12 +304,12 @@ export type TCategory =
 
 - `addToCart(id: string): void` - Метод добавления карты в корзину
 - `removeFromCart(id: number): void` - Метод удаления карты из корзины
-- `getCard(): ICardModel` Метод получения данных карты
+- `getCard(): ICardData` Метод получения данных карты
 
-Класс `CardModel` имплементирует интерфейс `ICardModel`
+Класс `CardModel` имплементирует интерфейс `ICardData`
 
 ```ts
-export interface ICardModel {
+export interface ICardData {
 	id: string;
 	image: string;
 	price: string;
@@ -317,9 +317,9 @@ export interface ICardModel {
 	description: string;
 	category: TCategory;
 
-	addToCart(product: ICardModel): void;
+	addToCart(product: ICardData): void;
 	removeFromCart(id: number): void;
-	getCard(): ICardModel;
+	getCard(): ICardData;
 }
 ```
 
@@ -440,12 +440,12 @@ constructor(cards CardModel[])
 
 Класс CardCollectionModel содержит данные карточек:
 
-- `cards: ICardModel[]` - Массив карточек
+- `cards: ICardData[]` - Массив карточек
 
 и методы для работы с карточками:
 
-- `setCards(cards: ICardModel[]): void` - Метод для передачи нового масива карточек
-- `getCards(): ICardModel[]` - Метод для получения актуального массива карточек
+- `setCards(cards: ICardData[]): void` - Метод для передачи нового масива карточек
+- `getCards(): ICardData[]` - Метод для получения актуального массива карточек
 
 Класс `CardCollectionModel` имплементирует интерфейс `ICardCollectionModel`
 
@@ -464,13 +464,13 @@ export interface ICardCollectionModel {
 
 Класс `CardCollectionView` содержит метод для рендера карточек:
 
-- `render(cards: ICardModel[]): void`
+- `render(cards: ICardData[]): void`
 
 Имплементирует интерфейс `ICardCollectionView`
 
 ```ts
 export interface ICardCollectionView {
-	render(cards: ICardModel[]): void;
+	render(cards: ICardData[]): void;
 }
 ```
 
@@ -481,12 +481,12 @@ export interface ICardCollectionView {
 `construnctor` принимает список карт:
 
 ```ts
-constructor(cards: ICardModel[])
+constructor(cards: ICardData[])
 ```
 
 свойсвта класса:
 
-- `cards: ICardModel[]`
+- `cards: ICardData[]`
 - `data: Partial<IOrderModel>` - Некоторое колличетво данных заказа, для того чтобы можно было добавлять постепенно
 - `userMail: string`
 - `userPhone: string`
@@ -511,7 +511,7 @@ export type TPayMethod = 'cash' | 'non-cash';
 
 ```ts
 export interface IOrderModel {
-	cards: ICardModel[];
+	cards: ICardData[];
 	data: Partial<IOrderModel>;
 	userMail: string;
 	userPhone: string;
@@ -627,20 +627,20 @@ export interface ICartView {
 `constructor` принимает карты добавленные в корзину:
 
 ```ts
-constructor(cardsinCart: ICardModel[])
+constructor(cardsinCart: ICardData[])
 ```
 
 Свойства класса:
 
 - `totalPrice: number`
-- `cardsInCart: ICardModel[]`
+- `cardsInCart: ICardData[]`
 
 Методы:
 
 - `getTotalPrice(): number`
 - `setTotalPrice(): void`
-- `getCards(): ICardModel[]`
-- `setCards(): ICardModel[]`
+- `getCards(): ICardData[]`
+- `setCards(): ICardData[]`
 - `reset(): void`
 
 Имплементирует интерфейс `ICartModel`:
@@ -648,11 +648,11 @@ constructor(cardsinCart: ICardModel[])
 ```ts
 export interface ICartModel {
 	totalPrice: number;
-	cardsInCart: ICardModel[];
+	cardsInCart: ICardData[];
 	getTotalPrice(): number;
 	setTotalPrice(): void;
-	getCards(): ICardModel[];
-	setCards(): ICardModel[];
+	getCards(): ICardData[];
+	setCards(): ICardData[];
 	reset(): void;
 }
 ```
@@ -665,7 +665,7 @@ export interface ICartModel {
 
 ```ts
 	onSubmit(handler: () => void): void;
-	render(data: { cards: ICardModel[]; totalPrice: number }): void;
+	render(data: { cards: ICardData[]; totalPrice: number }): void;
 ```
 
 Имплементирует интерфейс `ICartView` расширенный от `IModalData`:
@@ -673,7 +673,7 @@ export interface ICartModel {
 ```ts
 export interface ICartView extends IModalData {
 	onSubmit(handler: () => void): void;
-	render(data: { cards: ICardModel[]; totalPrice: number }): void;
+	render(data: { cards: ICardData[]; totalPrice: number }): void;
 }
 ```
 

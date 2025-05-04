@@ -1,9 +1,9 @@
-import { ICardModel, TCategory } from '../types/card';
+import { ICardData, TCategory } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { IEvents } from './base/events';
 import { IModalData, Modal } from './common/modal';
 
-export class Card implements ICardModel {
+export class Card {
 	id: string;
 	image: string;
 	price: string;
@@ -27,20 +27,20 @@ export class Card implements ICardModel {
 		this.category = category;
 	}
 
-	getCard(): ICardModel {
+	getCard(): ICardData {
 		return this;
 	}
 }
 
 export class CardView {
 	container: HTMLElement;
-	card: ICardModel;
+	card: ICardData;
 	events: IEvents;
 	CDN: string;
 
 	constructor(
 		container: HTMLElement,
-		card: ICardModel,
+		card: ICardData,
 		CDN_URL: string,
 		events: IEvents
 	) {
@@ -82,22 +82,22 @@ export class CardView {
 export class CardModal extends Modal {
 	constructor(
 		protected container: HTMLElement,
-		private _model: ICardModel,
+		private _model: ICardData,
 		public events: IEvents,
 		protected CDN: string
 	) {
 		super(container, events);
 	}
 
-	get model() {
-		return this._model;
-	}
-
-	set model(value: ICardModel) {
+	set model(value: ICardData) {
 		this._model = value;
 	}
 
-	render(data: IModalData): HTMLElement {
+	render(data?: IModalData): HTMLElement {
+		if (!data) {
+			data = {};
+		}
+
 		const content = ensureElement<HTMLTemplateElement>(
 			'#card-preview'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;

@@ -1,9 +1,9 @@
-import { ICardModel } from '../types/card';
+import { ICardData } from '../types/card';
 import { IEvents } from './base/events';
 import { CardView } from './card';
 
 export class CardCollectionModel {
-	constructor(public cards: ICardModel[]) {
+	constructor(public cards: ICardData[]) {
 		this.cards = cards;
 	}
 
@@ -11,7 +11,7 @@ export class CardCollectionModel {
 		return this.cards;
 	}
 
-	setCards(newCards: ICardModel[]): void {
+	setCards(newCards: ICardData[]): void {
 		this.cards = newCards;
 	}
 }
@@ -23,7 +23,7 @@ export class CardCollectionView {
 		private CDN_URL: string,
 		private view: new (
 			container: HTMLElement,
-			card: ICardModel,
+			card: ICardData,
 			CDN_URL: string,
 			events: IEvents
 		) => CardView,
@@ -37,8 +37,8 @@ export class CardCollectionView {
 
 	render() {
 		(
-			this.CardCollectionModel.getCards() as unknown as Array<ICardModel>
-		).forEach((card: ICardModel) => {
+			this.CardCollectionModel.getCards() as unknown as Array<ICardData>
+		).forEach((card: ICardData) => {
 			new this.view(this.container, card, this.CDN_URL, this.events).render();
 		});
 	}

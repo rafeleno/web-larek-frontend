@@ -1,11 +1,11 @@
 import { IModalData } from '../components/common/modal';
-import { ICardModel } from './card';
+import { ICardData } from './card';
 
 // ЗАКАЗ
-export type TPayMethod = 'cash' | 'non-cash';
+export type TPayMethod = 'cash' | 'non-cash' | 'empty';
 
 export interface IOrderModel {
-	cards: ICardModel[];
+	cards: ICardData[];
 	data: Partial<IOrderModel>;
 	userMail: string;
 	userPhone: string;

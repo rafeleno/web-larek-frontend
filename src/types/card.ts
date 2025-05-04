@@ -1,6 +1,3 @@
-import { IEvents } from '../components/base/events';
-import { IModalData } from '../components/common/modal';
-
 // КАРТА
 export type TCategory =
 	| 'софт-скил'
@@ -9,7 +6,7 @@ export type TCategory =
 	| 'другое'
 	| 'дополнительное';
 
-export interface ICardModel {
+export interface ICardData {
 	id: string;
 	image: string;
 	price: string;
