@@ -40,6 +40,11 @@ export class CartModel {
 	get cards() {
 		return this._cards;
 	}
+
+	reset() {
+		this._cards = [];
+		console.log(this._cards);
+	}
 }
 
 export type BasketCardData = Pick<ICardData, 'id' | 'title' | 'price'>;
@@ -129,7 +134,10 @@ export class CartView extends Modal {
 
 		const basketList = ensureElement<HTMLElement>('.basket__list', content);
 		// TODO: basketButton onclick
-		// const basketButton = ensureElement<HTMLElement>('.basket__button', content);
+		const basketButton = ensureElement<HTMLElement>('.basket__button', content);
+		basketButton.addEventListener('click', () => {
+			this.events.emit('cart:handleNextStep');
+		});
 
 		// Карты
 		this.renderCards(content, cards, basketList);

@@ -7,7 +7,12 @@ import {
 } from './components/CardCollection';
 import { BasketCardData, CartModel, CartView, Id } from './components/cart';
 import { HeaderModel, HeaderView } from './components/header';
-import { OrderModel, OrderStepOneModal } from './components/order';
+import {
+	OrderModel,
+	OrderStepOneModal,
+	OrderStepThreeModal,
+	OrderStepTwoModal,
+} from './components/order';
 import './scss/styles.scss';
 import { ICardData } from './types/card';
 
@@ -18,46 +23,8 @@ const events = new EventEmitter();
 
 const CardsApi = new Api(API_URL, settings);
 
-const emailRegExp = /^[\p{L}0-9._%+-]+@[\p{L}0-9.-]+\.[\p{L}]{2,}$/u;
-
 const CardCollectionContainer = ensureElement<HTMLElement>('.gallery');
 const modalContainer = ensureElement<HTMLElement>('#modal-container');
-
-// офлайн пример
-const exampleCards: ICardData[] = [
-	{
-		id: 'ajdlajdlkjalsdk',
-		image: '/ladjla',
-		price: '1000',
-		title: 'title',
-		description: 'description',
-		category: 'дополнительное',
-	},
-	{
-		id: 'ajdlajdlkjalsdk',
-		image: '/ladjla',
-		price: '1000',
-		title: 'title',
-		description: 'description',
-		category: 'дополнительное',
-	},
-	{
-		id: 'ajdlajdlkjalsdk',
-		image: '/ladjla',
-		price: '1000',
-		title: 'title',
-		description: 'description',
-		category: 'дополнительное',
-	},
-	{
-		id: 'ajdlajdlkjalsdk',
-		image: '/ladjla',
-		price: '1000',
-		title: 'title',
-		description: 'description',
-		category: 'дополнительное',
-	},
-];
 
 // Init
 CardsApi.get('/product/').then((res) => {
@@ -73,6 +40,8 @@ CardsApi.get('/product/').then((res) => {
 	);
 
 	CrdCollectionView.render();
+	const cardsForPost = CardCollection.cards;
+	return cardsForPost;
 });
 
 // // Пример;
@@ -114,6 +83,10 @@ events.on('cart:cardRemoved', (data: BasketCardData) => {
 	CartV.updateCards();
 });
 
+events.on('cart:handleNextStep', () => {
+	StepOneModal.render();
+});
+
 const headerContainer = ensureElement<HTMLElement>('header');
 
 const Header = new HeaderModel(Cart);
@@ -125,62 +98,109 @@ events.on('cart:click', () => {
 });
 HeaderV.render();
 
-const Order = new OrderModel();
-const StepOneModal = new OrderStepOneModal(modalContainer, events);
+const Order = new OrderModel(CardsApi);
 
-const StepOneModalAddressInput = ensureElement<HTMLInputElement>(
+// ШАГ 1 -----------------------------------------------------
+
+const StepOneModal = new OrderStepOneModal(modalContainer, events);
+const StepTwoModal = new OrderStepTwoModal(modalContainer, events);
+
+const OrderEmailInput = ensureElement<HTMLInputElement>(
+	'[name="email"]',
+	StepTwoModal.formContent
+);
+const OrderPhoneInput = ensureElement<HTMLInputElement>(
+	'[name="phone"]',
+	StepTwoModal.formContent
+);
+const OrderAddressInput = ensureElement<HTMLInputElement>(
 	'[name="address"]',
 	StepOneModal.formContent
 );
 
 events.on('order:card', () => {
-	Order.addData({ payment: 'non-cash' });
+	Order.payment = 'non-cash';
 
-	if (
-		Order.stepOneIsValid({
-			value: StepOneModalAddressInput.value,
-			regExp: emailRegExp,
-			Modal: StepOneModal,
-		})
-	) {
-		StepOneModal.formButton.removeAttribute('disabled');
-	} else {
+	if (Order.stepOneIsValid(StepOneModal) === false) {
 		StepOneModal.formButton.disabled = true;
+	} else {
+		StepOneModal.formButton.disabled = false;
 	}
-
-	console.log(Order.payment);
 });
 
 events.on('order:cash', () => {
-	Order.addData({ payment: 'cash' });
+	Order.payment = 'cash';
 
-	if (
-		Order.stepOneIsValid({
-			value: StepOneModalAddressInput.value,
-			regExp: emailRegExp,
-			Modal: StepOneModal,
-		})
-	) {
-		StepOneModal.formButton.removeAttribute('disabled');
-	} else {
+	if (Order.stepOneIsValid(StepOneModal) === false) {
 		StepOneModal.formButton.disabled = true;
+	} else {
+		StepOneModal.formButton.disabled = false;
 	}
-
-	console.log(Order.payment);
 });
 
+// value: StepOneModalAddressInput.value,
 events.on('addressInput:input', () => {
-	if (
-		Order.stepOneIsValid({
-			value: StepOneModalAddressInput.value,
-			regExp: emailRegExp,
-			Modal: StepOneModal,
-		})
-	) {
-		StepOneModal.formButton.removeAttribute('disabled');
-	} else {
+	if (Order.stepOneIsValid(StepOneModal) === false) {
 		StepOneModal.formButton.disabled = true;
+	} else {
+		StepOneModal.formButton.disabled = false;
 	}
+});
+
+events.on('orderStepOne:handleNextStep', () => {
+	StepTwoModal.render();
+	Order.address = OrderAddressInput.value;
+	Order.addData({
+		address: Order.address,
+		payment: Order.payment,
+	});
 });
 
 // TODO: Возможно лучне передавать элементы во View(да)
+
+// ШАГ 2 -----------------------------------------------------
+
+events.on('emailInput:input', () => {
+	Order.emailIsValid(OrderEmailInput.value);
+	if (Order.stepTwoIsValid()) {
+		StepTwoModal.formButton.disabled = false;
+	} else StepTwoModal.formButton.disabled = true;
+});
+
+events.on('phoneInput:input', () => {
+	Order.phoneIsValid(OrderPhoneInput.value);
+	if (Order.stepTwoIsValid()) {
+		StepTwoModal.formButton.disabled = false;
+	} else StepTwoModal.formButton.disabled = true;
+});
+
+events.on('orderStepTwo:handleNextStep', () => {
+	Order.email = OrderEmailInput.value;
+	Order.phone = OrderPhoneInput.value;
+	Order.addData({ email: Order.email, phone: Order.phone });
+	// total: Order.total Там 0
+	Order.postData({
+		paymentValue: Order.payment,
+		emailValue: Order.email,
+		phoneValue: Order.phone,
+		addressValue: Order.address,
+		totalValue: 666, // Я облажался покрупной и тпереь не могу вытащить стоимость карточек
+		itemsValue: Order.items,
+	});
+	stepOneThreeModal.render();
+});
+
+// ШАГ 3 -----------------------------------------------------
+
+const stepOneThreeModal = new OrderStepThreeModal(
+	modalContainer,
+	Order,
+	events
+);
+
+events.on('order:success', () => {
+	stepOneThreeModal.close();
+	Cart.reset();
+	Header.updateCounter();
+	HeaderV.updateCounter();
+});
