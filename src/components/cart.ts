@@ -14,6 +14,7 @@ export class CartModel {
 
 	constructor(cards: Id[] = []) {
 		this._cards = cards;
+		// this._price = this._cards;
 	}
 
 	addCards(newCards: Id[]): void {
@@ -21,8 +22,8 @@ export class CartModel {
 	}
 
 	removeCards(id: Id): void {
-		this._cards.filter((item) => {
-			item !== id;
+		this._cards = this._cards.filter((item) => {
+			return item !== id;
 		});
 	}
 
@@ -48,17 +49,67 @@ export class CartView extends Modal {
 	}
 
 	// Перенести в модель(Chatgpt, пока оставь это тут!)
-	private async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
+	protected async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
 		const requests = ids.map((id) => this.Api.get(`/product/${id}`));
-		const responses = await Promise.all(requests);
-		return responses as BasketCardData[];
+		const data = await Promise.all(requests);
+		return data as BasketCardData[];
 	}
-
-	updateCards() {}
 
 	render(data: IModalData): HTMLElement {
 		void this.renderAsync(data);
 		return this.container;
+	}
+
+	updateCards() {
+		void this.renderCards(this.container);
+	}
+
+	public async renderCards(
+		rootElement: HTMLElement,
+		cards?: BasketCardData[],
+		basketList?: HTMLElement
+	) {
+		console.log(rootElement);
+
+		if (!cards) {
+			cards = await this.fetchCards(this._model._cards);
+		}
+
+		if (!basketList) {
+			basketList = ensureElement<HTMLElement>('.basket__list', rootElement);
+		}
+
+		const basketPriceElement = ensureElement<HTMLElement>(
+			'.basket__price',
+			rootElement
+		);
+
+		basketList.innerHTML = '';
+
+		cards.forEach((card: BasketCardData) => {
+			const basketItem = ensureElement<HTMLTemplateElement>(
+				'#card-basket'
+			).content.firstElementChild?.cloneNode(true) as HTMLElement;
+
+			const cardTitle = ensureElement<HTMLElement>('.card__title', basketItem);
+			const cardPrice = ensureElement<HTMLElement>('.card__price', basketItem);
+			const basketItemDelete = ensureElement<HTMLButtonElement>(
+				'.basket__item-delete',
+				basketItem
+			);
+
+			cardTitle.textContent = card.title;
+			cardPrice.textContent = `${card.price} синапсов`;
+
+			basketItemDelete.addEventListener('click', () =>
+				this.events.emit('cart:cardRemoved', card)
+			);
+
+			basketList.append(basketItem);
+		});
+
+		basketPriceElement.textContent =
+			cards.reduce((sum, card) => sum + Number(card.price), 0) + ' Синапсов';
 	}
 
 	// Костыль
@@ -69,48 +120,16 @@ export class CartView extends Modal {
 			'#basket'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;
 
-		// Корзина
+		// Корзин
 		if (!content)
 			throw new Error('Шаблон пустой или не содержит корневой элемент');
 
 		const basketList = ensureElement<HTMLElement>('.basket__list', content);
 		// TODO: basketButton onclick
 		// const basketButton = ensureElement<HTMLElement>('.basket__button', content);
-		const basketPriceElement = ensureElement<HTMLElement>(
-			'.basket__price',
-			content
-		);
-
-		basketPriceElement.textContent =
-			cards
-				.reduce((sum, card) => {
-					return sum + Number(card.price);
-				}, 0)
-				.toString() + ' Синапсов';
 
 		// Карты
-		cards.forEach((card: BasketCardData) => {
-			const basketItem = ensureElement<HTMLTemplateElement>(
-				'#card-basket'
-			).content.firstElementChild?.cloneNode(true) as HTMLElement;
-
-			if (!basketItem)
-				throw new Error('Шаблон пустой или не содержит корневой элемент');
-
-			const cardTitle = ensureElement<HTMLElement>('.card__title', basketItem);
-			const cardPrice = ensureElement<HTMLElement>('.card__price', basketItem);
-			const basketItemDelete = ensureElement<HTMLButtonElement>(
-				'.basket__item-delete',
-				basketItem
-			);
-
-			cardTitle.textContent = card.title;
-			cardPrice.textContent = card.price + ' синапсов';
-			basketItemDelete.addEventListener('click', () =>
-				this.events.emit('cart:cardRemoved', card)
-			);
-			basketList.append(basketItem);
-		});
+		this.renderCards(content, cards, basketList);
 
 		data.content = content;
 

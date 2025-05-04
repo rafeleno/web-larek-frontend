@@ -19,6 +19,42 @@ const CardsApi = new Api(API_URL, settings);
 
 const CardCollectionContainer = ensureElement<HTMLElement>('.gallery');
 
+// офлайн пример
+const exampleCards: ICardModel[] = [
+	{
+		id: 'ajdlajdlkjalsdk',
+		image: '/ladjla',
+		price: '1000',
+		title: 'title',
+		description: 'description',
+		category: 'дополнительное',
+	},
+	{
+		id: 'ajdlajdlkjalsdk',
+		image: '/ladjla',
+		price: '1000',
+		title: 'title',
+		description: 'description',
+		category: 'дополнительное',
+	},
+	{
+		id: 'ajdlajdlkjalsdk',
+		image: '/ladjla',
+		price: '1000',
+		title: 'title',
+		description: 'description',
+		category: 'дополнительное',
+	},
+	{
+		id: 'ajdlajdlkjalsdk',
+		image: '/ladjla',
+		price: '1000',
+		title: 'title',
+		description: 'description',
+		category: 'дополнительное',
+	},
+];
+
 // Init
 CardsApi.get('/product/').then((res) => {
 	const data = res as { items: ICardModel[] };
@@ -35,8 +71,8 @@ CardsApi.get('/product/').then((res) => {
 	CrdCollectionView.render();
 });
 
-///// Пример;
-const CModal: CardModal = new CardModal(
+// // Пример;
+const ModalCard: CardModal = new CardModal(
 	ensureElement<HTMLElement>('#modal-container'),
 	{
 		id: '666',
@@ -51,9 +87,9 @@ const CModal: CardModal = new CardModal(
 );
 
 events.on('card:click', (data: ICardModel) => {
-	CModal.model = data;
+	ModalCard.model = data;
 
-	CModal.render({});
+	ModalCard.render({});
 });
 
 const Cart = new CartModel();
@@ -68,10 +104,13 @@ events.on('card:buy', (data: Id[]) => {
 	Cart.addCards(data);
 	HeaderV.updateCounter();
 });
+
 events.on('cart:cardRemoved', (data: BasketCardData) => {
 	Cart.removeCards(data.id);
+	CartV.updateCards();
 
-	console.log(100);
+	console.log(Cart._cards);
+	console.log(Cart._price);
 });
 
 const headerContainer = ensureElement<HTMLElement>('header');
