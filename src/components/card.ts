@@ -6,7 +6,7 @@ import { IModalData, Modal } from './common/modal';
 export class Card {
 	id: string;
 	image: string;
-	price: string;
+	price: number;
 	title: string;
 	description: string;
 	category: TCategory;
@@ -14,7 +14,7 @@ export class Card {
 	constructor(
 		id: string,
 		image: string,
-		price: string,
+		price: number,
 		cardName: string,
 		description: string,
 		category: TCategory
@@ -28,7 +28,14 @@ export class Card {
 	}
 
 	getCard(): ICardData {
-		return this;
+		return {
+			id: this.id,
+			image: this.image,
+			price: this.price,
+			title: this.title,
+			description: this.description,
+			category: this.category,
+		};
 	}
 }
 
@@ -80,6 +87,11 @@ export class CardView {
 }
 
 export class CardModal extends Modal {
+	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
+	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
+	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
+	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
+
 	constructor(
 		protected container: HTMLElement,
 		private _model: ICardData,
@@ -113,10 +125,12 @@ export class CardModal extends Modal {
 			this._model.title;
 		ensureElement<HTMLElement>('.card__text', content).textContent =
 			this._model.description;
+
 		ensureElement<HTMLButtonElement>('.card__button', content).addEventListener(
 			'click',
-			() => this.events.emit('card:buy', this._model.id.split(','))
+			() => this.events.emit('card:buy', this._model)
 		);
+
 		ensureElement<HTMLElement>('.card__price', content).textContent =
 			this._model.price + ' Синапсов';
 

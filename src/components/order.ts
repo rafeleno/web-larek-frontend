@@ -1,7 +1,9 @@
+import { ICardData } from '../types/card';
 import { TPayMethod } from '../types/order';
 import { ensureElement } from '../utils/utils';
 import { Api } from './base/api';
 import { IEvents } from './base/events';
+import { Card } from './card';
 import { Id } from './cart';
 import { IModalData, Modal } from './common/modal';
 
@@ -19,49 +21,58 @@ export class OrderModel {
 	protected _email = '';
 	protected _phone = '';
 	protected _address = '';
-	protected _total = 0;
-	protected _items: Id[] = [];
+	protected _items: ICardData[] = [];
 	protected emailValidState = false;
 	protected phoneValidState = false;
 
 	constructor(protected api: Api) {}
 
-	addData(data: Partial<OrderModel>) {
-		Object.assign(this, data);
-	}
+	// addData(data: Partial<OrderModel>) {
+	// 	Object.assign(this, data);
+	// }
 
 	get payment() {
 		return this._payment;
 	}
-	set payment(value) {
+	set payment(value: TPayMethod) {
 		this._payment = value;
 	}
 	get email() {
 		return this._email;
 	}
-	set email(value) {
+	set email(value: string) {
 		this._email = value;
 	}
 	get phone() {
 		return this._phone;
 	}
-	set phone(value) {
+	set phone(value: string) {
 		this._phone = value;
 	}
 	get address() {
 		return this._address;
 	}
-	set address(value) {
+	set address(value: string) {
 		this._address = value;
-	}
-	get total(): number {
-		return this._total;
 	}
 	get items() {
 		return this._items;
 	}
-	set items(value: Id[]) {
+	set items(value: ICardData[]) {
 		this._items = value;
+	}
+	get total() {
+		return this.items.reduce((sum, item) => sum + item.price, 0);
+	}
+	get postData() {
+		return {
+			payment: this.payment,
+			email: this.email,
+			phone: this.phone,
+			address: this.address,
+			total: this.total,
+			items: this.items.map((card) => card.id),
+		};
 	}
 
 	stepOneIsValid(modal: OrderStepOneModal): boolean {
@@ -103,17 +114,8 @@ export class OrderModel {
 		return this.emailValidState && this.phoneValidState;
 	}
 
-	// КОСТЫЛЬ ИЗ-ЗА НЕУДАЧНОГО РЕШЕНИЯ РАБОТАТЬ С МАССИВОМ ID А НЕ ЦЕЛЫМИ КАРТАМИ
-	postData(data: {
-		paymentValue: TPayMethod;
-		emailValue: string;
-		phoneValue: string;
-		addressValue: string;
-		totalValue: number;
-		itemsValue: Id[];
-	}) {
-		this.api.post('/order', data);
-		console.log();
+	post() {
+		this.api.post('/order', this.postData).then((res) => console.log(res));
 	}
 }
 

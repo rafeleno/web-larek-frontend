@@ -18,7 +18,7 @@ export class HeaderModel {
 	}
 
 	updateCounter(): string {
-		this._productsCount = this.CartModel._cards.length.toString();
+		this._productsCount = this.CartModel.cards.length.toString();
 		return this._productsCount;
 	}
 }

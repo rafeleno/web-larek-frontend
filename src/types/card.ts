@@ -9,7 +9,7 @@ export type TCategory =
 export interface ICardData {
 	id: string;
 	image: string;
-	price: string;
+	price: number;
 	title: string;
 	description: string;
 	category: TCategory;

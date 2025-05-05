@@ -1,6 +1,6 @@
 import { Api } from './components/base/api';
 import { EventEmitter, IEvents } from './components/base/events';
-import { CardModal, CardView } from './components/card';
+import { Card, CardModal, CardView } from './components/card';
 import {
 	CardCollectionModel,
 	CardCollectionView,
@@ -53,7 +53,7 @@ const ModalCard: CardModal = new CardModal(
 		image: 'example',
 		title: 'example',
 		category: 'софт-скил',
-		price: 'example',
+		price: 0,
 	},
 	events,
 	CDN_URL
@@ -73,7 +73,7 @@ const CartV = new CartView(
 	events
 );
 
-events.on('card:buy', (data: Id[]) => {
+events.on('card:buy', (data: Card) => {
 	Cart.addCards(data);
 	HeaderV.updateCounter();
 });
@@ -130,6 +130,7 @@ events.on('order:card', () => {
 
 events.on('order:cash', () => {
 	Order.payment = 'cash';
+	// Order.addData
 
 	if (Order.stepOneIsValid(StepOneModal) === false) {
 		StepOneModal.formButton.disabled = true;
@@ -150,10 +151,11 @@ events.on('addressInput:input', () => {
 events.on('orderStepOne:handleNextStep', () => {
 	StepTwoModal.render();
 	Order.address = OrderAddressInput.value;
-	Order.addData({
-		address: Order.address,
-		payment: Order.payment,
-	});
+	Order.items = Cart.cards;
+	// Order.addData({
+	// 	address: Order.address,
+	// 	payment: Order.payment,
+	// });
 });
 
 // TODO: Возможно лучне передавать элементы во View(да)
@@ -177,16 +179,8 @@ events.on('phoneInput:input', () => {
 events.on('orderStepTwo:handleNextStep', () => {
 	Order.email = OrderEmailInput.value;
 	Order.phone = OrderPhoneInput.value;
-	Order.addData({ email: Order.email, phone: Order.phone });
-	// total: Order.total Там 0
-	Order.postData({
-		paymentValue: Order.payment,
-		emailValue: Order.email,
-		phoneValue: Order.phone,
-		addressValue: Order.address,
-		totalValue: 666, // Я облажался покрупной и тпереь не могу вытащить стоимость карточек
-		itemsValue: Order.items,
-	});
+	// Order.items = Order.addData({ email: Order.email, phone: Order.phone });
+	Order.post();
 	stepOneThreeModal.render();
 });
 

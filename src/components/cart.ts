@@ -9,7 +9,7 @@ import { IModalData, Modal } from './common/modal';
 export type Id = string;
 
 export class CartModel {
-	_cards: Id[];
+	protected _cards: ICardData[];
 	api: Api;
 
 	constructor(api: Api) {
@@ -17,32 +17,34 @@ export class CartModel {
 		this._cards = [];
 	}
 
-	async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
-		const requests = ids.map((id) => this.api.get(`/product/${id}`));
-		const data = await Promise.all(requests);
-		return data as BasketCardData[];
-	}
+	// async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
+	// 	const requests = ids.map((id) => this.api.get(`/product/${id}`));
+	// 	const data = await Promise.all(requests);
+	// 	return data as BasketCardData[];
+	// }
 
-	addCards(newCards: Id[]): void {
-		this._cards.push(...newCards);
+	addCards(newCards: Card): void {
+		this._cards.push(newCards);
 	}
 
 	removeCards(id: Id): void {
 		this._cards = this._cards.filter((item) => {
-			return item !== id;
+			return item.id !== id;
 		});
 	}
 
-	set cards(value: Id[]) {
+	set cards(value: ICardData[]) {
 		this._cards = value;
 	}
 
-	get cards() {
+	get cards(): ICardData[] | [] {
 		return this._cards;
 	}
 
 	reset() {
 		this._cards = [];
+
+		console.log('cart._cards');
 		console.log(this._cards);
 	}
 }
@@ -80,7 +82,7 @@ export class CartView extends Modal {
 		console.log(rootElement);
 
 		if (!cards) {
-			cards = await this._model.fetchCards(this._model._cards);
+			cards = this._model.cards;
 		}
 
 		if (!basketList) {
@@ -122,7 +124,7 @@ export class CartView extends Modal {
 
 	// Костыль
 	private async renderAsync(data: IModalData): Promise<HTMLElement> {
-		const cards = await this._model.fetchCards(this._model._cards);
+		const cards = this._model.cards;
 
 		const content = ensureElement<HTMLTemplateElement>(
 			'#basket'
