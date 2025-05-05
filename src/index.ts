@@ -29,8 +29,21 @@ const modalContainer = ensureElement<HTMLElement>('#modal-container');
 // Init
 CardsApi.get('/product/').then((res) => {
 	const data = res as { items: ICardData[] };
+	const newCards: Card[] = [];
+	data.items.forEach((cardDataElement) => {
+		newCards.push(
+			new Card(
+				cardDataElement.id,
+				cardDataElement.image,
+				cardDataElement.price,
+				cardDataElement.title,
+				cardDataElement.description,
+				cardDataElement.category
+			)
+		);
+	});
 
-	const CardCollection = new CardCollectionModel(data.items);
+	const CardCollection = new CardCollectionModel(newCards);
 	const CrdCollectionView = new CardCollectionView(
 		CardCollectionContainer,
 		CardCollection,
@@ -44,24 +57,18 @@ CardsApi.get('/product/').then((res) => {
 	return cardsForPost;
 });
 
-// // Пример;
+// init;
 const ModalCard: CardModal = new CardModal(
 	modalContainer,
-	{
-		id: '666',
-		description: 'example',
-		image: 'example',
-		title: 'example',
-		category: 'софт-скил',
-		price: 0,
-	},
+	new Card('666', 'example', 0, 'example', 'example', 'софт-скил'),
 	events,
 	CDN_URL
 );
 
-events.on('card:click', (data: ICardData) => {
-	ModalCard.model = data;
+events.on('card:click', (data: Card) => {
+	data.isInCart(Cart.cards);
 
+	ModalCard.model = data;
 	ModalCard.render();
 });
 
@@ -73,9 +80,14 @@ const CartV = new CartView(
 	events
 );
 
-events.on('card:buy', (data: Card) => {
-	Cart.addCards(data);
+events.on('cardModal:buy', (cardModal: CardModal) => {
+	Cart.addCards(cardModal.model.cardData);
+	cardModal.blockButton(true);
 	HeaderV.updateCounter();
+});
+
+events.on('cardModal:close', (cardModal: CardModal) => {
+	cardModal.blockButton(false);
 });
 
 events.on('cart:cardRemoved', (data: BasketCardData) => {

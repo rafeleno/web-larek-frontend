@@ -13,6 +13,7 @@ export interface ICardData {
 	title: string;
 	description: string;
 	category: TCategory;
+	isInCartState: boolean;
 }
 
 // export interface ICardMainView {

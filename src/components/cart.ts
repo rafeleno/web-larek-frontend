@@ -23,7 +23,7 @@ export class CartModel {
 	// 	return data as BasketCardData[];
 	// }
 
-	addCards(newCards: Card): void {
+	addCards(newCards: ICardData): void {
 		this._cards.push(newCards);
 	}
 

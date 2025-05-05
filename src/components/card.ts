@@ -1,53 +1,97 @@
 import { ICardData, TCategory } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { IEvents } from './base/events';
+import { Id } from './cart';
 import { IModalData, Modal } from './common/modal';
 
 export class Card {
-	id: string;
-	image: string;
-	price: number;
-	title: string;
-	description: string;
-	category: TCategory;
+	protected _isInCartState = false;
 
 	constructor(
-		id: string,
-		image: string,
-		price: number,
-		cardName: string,
-		description: string,
-		category: TCategory
-	) {
-		this.id = id;
-		this.image = image;
-		this.price = price;
-		this.title = cardName;
-		this.description = description;
-		this.category = category;
+		protected _id: string,
+		protected _image: string,
+		protected _price: number,
+		protected _title: string,
+		protected _description: string,
+		protected _category: TCategory
+	) {}
+
+	get isInCartState() {
+		return this._isInCartState;
+	}
+	set isInCartState(value: boolean) {
+		this._isInCartState = value;
+	}
+	get id() {
+		return this._id;
+	}
+	set id(value: Id) {
+		this._id = value;
+	}
+	get image() {
+		return this._image;
+	}
+	set image(value: string) {
+		this._image = value;
+	}
+	get price() {
+		return this._price;
+	}
+	set price(value: number) {
+		this._price = value;
+	}
+	get title() {
+		return this._title;
+	}
+	set title(value: string) {
+		this._title = value;
+	}
+	get description() {
+		return this._description;
+	}
+	set description(value: string) {
+		this._description = value;
+	}
+	get category() {
+		return this._category;
+	}
+	set category(value: TCategory) {
+		this._category = value;
 	}
 
-	getCard(): ICardData {
+	// Оптимизировать (убрать лишенее?)
+	get cardData(): ICardData {
 		return {
-			id: this.id,
-			image: this.image,
-			price: this.price,
+			id: this._id,
+			image: this._image,
+			price: this._price,
 			title: this.title,
-			description: this.description,
-			category: this.category,
+			description: this._description,
+			category: this._category,
+			isInCartState: this.isInCartState,
 		};
+	}
+
+	isInCart(cardsInCart: ICardData[]): void {
+		if (cardsInCart.some((card) => card.id === this.id)) {
+			this.isInCartState = true;
+			console.log('this.isInCartState = true');
+		} else {
+			this.isInCartState = false;
+			console.log('this.isInCartState = false');
+		}
 	}
 }
 
 export class CardView {
 	container: HTMLElement;
-	card: ICardData;
+	card: Card;
 	events: IEvents;
 	CDN: string;
 
 	constructor(
 		container: HTMLElement,
-		card: ICardData,
+		card: Card,
 		CDN_URL: string,
 		events: IEvents
 	) {
@@ -87,22 +131,65 @@ export class CardView {
 }
 
 export class CardModal extends Modal {
-	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
-	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
-	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
-	// cardImage = ensureElement<HTMLImageElement>('.card__image', content);
+	contentElement = ensureElement<HTMLTemplateElement>(
+		'#card-preview'
+	).content.firstElementChild?.cloneNode(true) as HTMLElement;
+	cardImageElement = ensureElement<HTMLImageElement>(
+		'.card__image',
+		this.contentElement
+	);
+	cardCategoryElement = ensureElement<HTMLImageElement>(
+		'.card__category',
+		this.contentElement
+	);
+	cardTitleElement = ensureElement<HTMLImageElement>(
+		'.card__title',
+		this.contentElement
+	);
+	cardTextElement = ensureElement<HTMLImageElement>(
+		'.card__text',
+		this.contentElement
+	);
+	cardButtonElement = ensureElement<HTMLButtonElement>(
+		'.card__button',
+		this.contentElement
+	);
+	cardPriceElement = ensureElement<HTMLElement>(
+		'.card__price',
+		this.contentElement
+	);
 
 	constructor(
 		protected container: HTMLElement,
-		private _model: ICardData,
+		private _model: Card,
 		public events: IEvents,
 		protected CDN: string
 	) {
 		super(container, events);
 	}
 
-	set model(value: ICardData) {
+	set model(value: Card) {
 		this._model = value;
+	}
+
+	get model() {
+		return this._model;
+	}
+
+	close() {
+		super.close();
+		this.events.emit('cardModal:close', this);
+	}
+
+	// Маленький Костыль
+	blockButton(value: boolean) {
+		if (value) {
+			this.cardButtonElement.disabled = true;
+			this.cardButtonElement.textContent = 'В корзине';
+		} else {
+			this.cardButtonElement.disabled = false;
+			this.cardButtonElement.textContent = 'В корзину';
+		}
 	}
 
 	render(data?: IModalData): HTMLElement {
@@ -110,32 +197,24 @@ export class CardModal extends Modal {
 			data = {};
 		}
 
-		const content = ensureElement<HTMLTemplateElement>(
-			'#card-preview'
-		).content.firstElementChild?.cloneNode(true) as HTMLElement;
-
-		if (!content)
-			throw new Error('Шаблон пустой или не содержит корневой элемент');
-
-		ensureElement<HTMLImageElement>('.card__image', content).src =
+		this.cardImageElement.src =
 			this.CDN + this._model.image.replace('.svg', '.png');
-		ensureElement<HTMLElement>('.card__category', content).textContent =
-			this._model.category;
-		ensureElement<HTMLElement>('.card__title', content).textContent =
-			this._model.title;
-		ensureElement<HTMLElement>('.card__text', content).textContent =
-			this._model.description;
+		this.cardCategoryElement.textContent = this._model.category;
+		this.cardTitleElement.textContent = this._model.title;
+		this.cardTextElement.textContent = this._model.description;
 
-		ensureElement<HTMLButtonElement>('.card__button', content).addEventListener(
-			'click',
-			() => this.events.emit('card:buy', this._model)
-		);
+		if (this.model.isInCartState) {
+			this.cardButtonElement.disabled = true;
+			this.cardButtonElement.textContent = 'В корзине';
+		}
+		this.cardButtonElement.addEventListener('click', () => {
+			this.events.emit('cardModal:buy', this);
+		});
 
-		ensureElement<HTMLElement>('.card__price', content).textContent =
-			this._model.price + ' Синапсов';
+		this.cardPriceElement.textContent = this._model.price + ' Синапсов';
 
 		// Костыль
-		data.content = content;
+		data.content = this.contentElement;
 
 		return super.render(data);
 	}
