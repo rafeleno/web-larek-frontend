@@ -152,7 +152,6 @@ export class OrderStepOneModal extends Modal {
 		this.buttonCard.addEventListener('click', () => {
 			this.buttonCard.classList.add('button_alt-active');
 			this.buttonCash.classList.remove('button_alt-active');
-			// }
 
 			this.events.emit('order:card');
 		});

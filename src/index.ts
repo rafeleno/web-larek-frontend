@@ -210,17 +210,17 @@ events.on('order:success', () => {
 
 events.on('orderStepOne:close', () => {
 	StepOneModal.reset();
-	console.log(300);
+	console.log('orderStepOne:close');
 });
 
 events.on('orderStepTwo:close', () => {
 	StepTwoModal.reset();
-	console.log(200);
+	console.log('orderStepTwo:close');
 });
 
-// events.on('orderStepThree:close', () => {
-// 	Cart.reset();
-// 	Header.updateCounter();
-// 	HeaderV.updateCounter();
-// console.log(100);
-// });
+events.on('orderStepThree:close', () => {
+	// Cart.reset();
+	// Header.updateCounter();
+	// HeaderV.updateCounter();
+	console.log('orderStepThree:close');
+});

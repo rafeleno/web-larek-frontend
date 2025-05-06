@@ -48,46 +48,54 @@ export class CartView extends Modal {
 	constructor(
 		protected container: HTMLElement,
 		private _model: CartModel,
-
 		protected events: IEvents
 	) {
 		super(container, events);
 	}
 
 	render(data?: IModalData): HTMLElement {
-		if (!data) {
-			data = {};
-		}
+		const content = ensureElement<HTMLTemplateElement>(
+			'#basket'
+		).content.firstElementChild?.cloneNode(true) as HTMLElement;
 
-		void this.renderAsync(data);
-		return this.container;
-	}
+		if (!content) throw new Error('Шаблон корзины не найден или пуст');
 
-	updateCards() {
-		void this.renderCards(this.container);
-	}
-
-	private async renderCards(
-		rootElement: HTMLElement,
-		cards?: BasketCardData[],
-		basketList?: HTMLElement
-	) {
-		if (!cards) {
-			cards = this._model.cards;
-		}
-
-		if (!basketList) {
-			basketList = ensureElement<HTMLElement>('.basket__list', rootElement);
-		}
-
-		const basketPriceElement = ensureElement<HTMLElement>(
-			'.basket__price',
-			rootElement
+		const basketList = ensureElement<HTMLElement>('.basket__list', content);
+		const basketButton = ensureElement<HTMLButtonElement>(
+			'.basket__button',
+			content
 		);
 
-		basketList.innerHTML = '';
+		basketButton.addEventListener('click', () => {
+			this.events.emit('cart:handleNextStep');
+		});
 
-		cards.forEach((card: BasketCardData) => {
+		this.renderCards(this._model.cards, basketList);
+
+		if (!data) data = {};
+		data.content = content;
+
+		return super.render(data);
+	}
+
+	updateCards(): void {
+		const basketList = this.container.querySelector(
+			'.basket__list'
+		) as HTMLElement;
+		if (basketList) {
+			basketList.innerHTML = '';
+			this.renderCards(this._model.cards, basketList);
+		}
+	}
+
+	private renderCards(cards: BasketCardData[], basketList: HTMLElement): void {
+		const basketPriceElement = this.container.querySelector(
+			'.basket__price'
+		) as HTMLElement;
+
+		let total = 0;
+
+		cards.forEach((card) => {
 			const basketItem = ensureElement<HTMLTemplateElement>(
 				'#card-basket'
 			).content.firstElementChild?.cloneNode(true) as HTMLElement;
@@ -101,42 +109,17 @@ export class CartView extends Modal {
 
 			cardTitle.textContent = card.title;
 			cardPrice.textContent = `${card.price} синапсов`;
+			total += Number(card.price);
 
-			basketItemDelete.addEventListener('click', () =>
-				this.events.emit('cart:cardRemoved', card)
-			);
+			basketItemDelete.addEventListener('click', () => {
+				this.events.emit('cart:cardRemoved', card);
+			});
 
 			basketList.append(basketItem);
 		});
 
-		basketPriceElement.textContent =
-			cards.reduce((sum, card) => sum + Number(card.price), 0) + ' Синапсов';
-	}
-
-	// Костыль
-	private async renderAsync(data: IModalData): Promise<HTMLElement> {
-		const cards = this._model.cards;
-
-		const content = ensureElement<HTMLTemplateElement>(
-			'#basket'
-		).content.firstElementChild?.cloneNode(true) as HTMLElement;
-
-		// Корзин
-		if (!content)
-			throw new Error('Шаблон пустой или не содержит корневой элемент');
-
-		const basketList = ensureElement<HTMLElement>('.basket__list', content);
-		// TODO: basketButton onclick
-		const basketButton = ensureElement<HTMLElement>('.basket__button', content);
-		basketButton.addEventListener('click', () => {
-			this.events.emit('cart:handleNextStep');
-		});
-
-		// Карты
-		this.renderCards(content, cards, basketList);
-
-		data.content = content;
-
-		return super.render(data);
+		if (basketPriceElement) {
+			basketPriceElement.textContent = `${total} синапсов`;
+		}
 	}
 }
