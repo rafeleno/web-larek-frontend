@@ -26,6 +26,14 @@ const CardsApi = new Api(API_URL, settings);
 const CardCollectionContainer = ensureElement<HTMLElement>('.gallery');
 const modalContainer = ensureElement<HTMLElement>('#modal-container');
 
+const pageElement = ensureElement<HTMLElement>('.page');
+events.on('modal:open', () => {
+	pageElement.classList.add('page_locked');
+});
+events.on('modal:close', () => {
+	pageElement.classList.remove('page_locked');
+});
+
 // Init
 CardsApi.get('/product/').then((res) => {
 	const data = res as { items: ICardData[] };
@@ -130,35 +138,36 @@ const OrderAddressInput = ensureElement<HTMLInputElement>(
 	StepOneModal.formContent
 );
 
-events.on('order:card', () => {
-	Order.payment = 'non-cash';
+function validateStepOne() {
+	Order.stepOneIsValid(StepOneModal);
 
-	if (Order.stepOneIsValid(StepOneModal) === false) {
+	const { status, errors } = Order.stepOneErrorState;
+
+	if (status === 'error') {
 		StepOneModal.formButton.disabled = true;
+
+		if (errors === 'address') {
+			StepOneModal.updateError('Введите адрес');
+		} else if (errors === 'payMethod') {
+			StepOneModal.updateError('Выберите метод оплаты');
+		}
 	} else {
+		StepOneModal.updateError('');
 		StepOneModal.formButton.disabled = false;
 	}
+}
+
+events.on('order:card', () => {
+	Order.payment = 'non-cash';
+	validateStepOne();
 });
 
 events.on('order:cash', () => {
 	Order.payment = 'cash';
-	// Order.addData
-
-	if (Order.stepOneIsValid(StepOneModal) === false) {
-		StepOneModal.formButton.disabled = true;
-	} else {
-		StepOneModal.formButton.disabled = false;
-	}
+	validateStepOne();
 });
 
-// value: StepOneModalAddressInput.value,
-events.on('addressInput:input', () => {
-	if (Order.stepOneIsValid(StepOneModal) === false) {
-		StepOneModal.formButton.disabled = true;
-	} else {
-		StepOneModal.formButton.disabled = false;
-	}
-});
+events.on('addressInput:input', validateStepOne);
 
 events.on('orderStepOne:handleNextStep', () => {
 	StepTwoModal.render();
@@ -174,53 +183,61 @@ events.on('orderStepOne:handleNextStep', () => {
 
 // ШАГ 2 -----------------------------------------------------
 
-events.on('emailInput:input', () => {
+function validateStepTwo() {
 	Order.emailIsValid(OrderEmailInput.value);
-	if (Order.stepTwoIsValid()) {
-		StepTwoModal.formButton.disabled = false;
-	} else StepTwoModal.formButton.disabled = true;
-});
-
-events.on('phoneInput:input', () => {
 	Order.phoneIsValid(OrderPhoneInput.value);
-	if (Order.stepTwoIsValid()) {
+	Order.stepTwoIsValid();
+
+	const { status, errors } = Order.stepTwoErrorState;
+
+	if (status === 'error') {
+		StepTwoModal.formButton.disabled = true;
+		StepTwoModal.error.textContent =
+			errors === 'email'
+				? 'Укажите свою почту'
+				: errors === 'phone'
+				? 'Укажите свой номер телефона'
+				: '';
+	} else {
+		StepTwoModal.error.textContent = '';
 		StepTwoModal.formButton.disabled = false;
-	} else StepTwoModal.formButton.disabled = true;
-});
+	}
+}
+
+events.on('emailInput:input', validateStepTwo);
+events.on('phoneInput:input', validateStepTwo);
 
 events.on('orderStepTwo:handleNextStep', () => {
 	Order.email = OrderEmailInput.value;
 	Order.phone = OrderPhoneInput.value;
 	// Order.items = Order.addData({ email: Order.email, phone: Order.phone });
 	Order.post();
-	stepOneThreeModal.render();
+	stepThreeModal.render();
 });
 
 // ШАГ 3 -----------------------------------------------------
 
-const stepOneThreeModal = new OrderStepThreeModal(
-	modalContainer,
-	Order,
-	events
-);
+const stepThreeModal = new OrderStepThreeModal(modalContainer, Order, events);
 
-events.on('order:success', () => {
-	stepOneThreeModal.close();
-});
+// events.on('order:success', () => {
+// });
 
-events.on('orderStepOne:close', () => {
-	StepOneModal.reset();
-	console.log('orderStepOne:close');
-});
+// events.on('orderStepOne:close', () => {
+// 	StepOneModal.reset();
+// 	console.log('orderStepOne:close');
+// });
 
-events.on('orderStepTwo:close', () => {
-	StepTwoModal.reset();
-	console.log('orderStepTwo:close');
-});
+// events.on('orderStepTwo:close', () => {
+// 	StepTwoModal.reset();
+// 	console.log('orderStepTwo:close');
+// });
 
 events.on('orderStepThree:close', () => {
-	// Cart.reset();
-	// Header.updateCounter();
-	// HeaderV.updateCounter();
-	console.log('orderStepThree:close');
+	if (modalContainer.classList.contains('step-three-modal')) {
+		Cart.reset();
+		Header.updateCounter();
+		HeaderV.updateCounter();
+		stepThreeModal.close();
+		console.log('orderStepThree:close');
+	}
 });

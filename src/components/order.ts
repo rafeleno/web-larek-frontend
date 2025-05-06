@@ -24,13 +24,32 @@ export class OrderModel {
 	protected _items: ICardData[] = [];
 	protected emailValidState = false;
 	protected phoneValidState = false;
+	protected _stepOneErrorState: {
+		status: 'error' | 'non-error';
+		errors: 'payMethod' | 'address' | 'non';
+	};
+	protected _stepTwoErrorState: {
+		status: 'error' | 'non-error';
+		errors: 'email' | 'phone' | 'non';
+	};
 
-	constructor(protected api: Api) {}
+	constructor(protected api: Api) {
+		this._stepOneErrorState = {
+			status: 'non-error',
+			errors: 'non',
+		};
+		this._stepTwoErrorState = {
+			status: 'non-error',
+			errors: 'non',
+		};
+	}
 
-	// addData(data: Partial<OrderModel>) {
-	// 	Object.assign(this, data);
-	// }
-
+	get stepOneErrorState() {
+		return this._stepOneErrorState;
+	}
+	get stepTwoErrorState() {
+		return this._stepTwoErrorState;
+	}
 	get payment() {
 		return this._payment;
 	}
@@ -75,15 +94,32 @@ export class OrderModel {
 		};
 	}
 
-	stepOneIsValid(modal: OrderStepOneModal): boolean {
+	stepOneIsValid(modal: OrderStepOneModal): void {
 		if (
 			!modal.buttonCash.classList.contains('button_alt-active') &&
 			!modal.buttonCard.classList.contains('button_alt-active')
 		) {
-			return false;
+			this._stepOneErrorState.status = 'error';
+			this._stepOneErrorState.errors = 'payMethod';
+		} else if (modal.addressInput.value.length < 1) {
+			this._stepOneErrorState.status = 'error';
+			this._stepOneErrorState.errors = 'address';
+		} else {
+			this._stepOneErrorState.status = 'non-error';
+			this._stepOneErrorState.errors = 'non';
 		}
-		if (modal.addressInput.value.length < 1) {
-			return false;
+	}
+
+	stepTwoIsValid(): void {
+		if (!this.emailValidState) {
+			this._stepTwoErrorState.status = 'error';
+			this._stepTwoErrorState.errors = 'email';
+		} else if (!this.phoneValidState) {
+			this._stepTwoErrorState.status = 'error';
+			this._stepTwoErrorState.errors = 'phone';
+		} else {
+			this._stepTwoErrorState.status = 'non-error';
+			this._stepTwoErrorState.errors = 'non';
 		}
 	}
 
@@ -109,10 +145,10 @@ export class OrderModel {
 		} else this.phoneValidState = false;
 	}
 
-	stepTwoIsValid() {
-		console.log(this.emailValidState && this.phoneValidState);
-		return this.emailValidState && this.phoneValidState;
-	}
+	// stepTwoIsValid() {
+	// 	console.log(this.emailValidState && this.phoneValidState);
+	// 	return this.emailValidState && this.phoneValidState;
+	// }
 
 	post() {
 		this.api.post('/order', this.postData).then((res) => console.log(res));
@@ -125,6 +161,7 @@ export class OrderStepOneModal extends Modal {
 	buttonCash: HTMLButtonElement;
 	addressInput: HTMLInputElement;
 	formButton: HTMLButtonElement;
+	error: HTMLElement;
 
 	constructor(container: HTMLElement, events: IEvents) {
 		super(container, events);
@@ -148,6 +185,7 @@ export class OrderStepOneModal extends Modal {
 			'.order__button',
 			this.formContent
 		);
+		this.error = ensureElement<HTMLElement>('.form__errors', this.formContent);
 
 		this.buttonCard.addEventListener('click', () => {
 			this.buttonCard.classList.add('button_alt-active');
@@ -172,21 +210,27 @@ export class OrderStepOneModal extends Modal {
 		});
 	}
 
+	updateError(value: string) {
+		this.error.textContent = value;
+	}
+
 	reset() {
 		this.buttonCash.classList.remove('button_alt-active');
 		this.buttonCard.classList.remove('button_alt-active');
 		this.addressInput.value = '';
 	}
 
-	close(): void {
-		this.events.emit('orderStepOne:close');
-	}
+	// close(): void {
+	// 	this.events.emit('orderStepOne:close');
+	// }
 
 	render(data?: IModalData): HTMLElement {
 		// Костыль
 		if (!data) {
 			data = {};
 		}
+		// Костыль
+		this.container.classList.remove('step-three-modal');
 		data.content = this.formContent;
 		return super.render(data);
 	}
@@ -199,6 +243,8 @@ export class OrderStepTwoModal extends Modal {
 	emailInput: HTMLInputElement;
 	phoneInput: HTMLInputElement;
 	formButton: HTMLButtonElement;
+	error: HTMLElement;
+
 	constructor(container: HTMLElement, events: IEvents) {
 		super(container, events);
 
@@ -206,7 +252,6 @@ export class OrderStepTwoModal extends Modal {
 		this.formContent = ensureElement<HTMLTemplateElement>(
 			'#contacts'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;
-
 		this.emailInput = ensureElement<HTMLInputElement>(
 			'[name="email"]',
 			this.formContent
@@ -220,6 +265,7 @@ export class OrderStepTwoModal extends Modal {
 			'.button',
 			this.formContent
 		);
+		this.error = ensureElement<HTMLElement>('.form__errors', this.formContent);
 
 		this.emailInput.addEventListener('input', () => {
 			this.events.emit('emailInput:input');
@@ -240,15 +286,21 @@ export class OrderStepTwoModal extends Modal {
 		this.emailInput.value = '';
 	}
 
-	close(): void {
-		this.events.emit('orderStepTwo:close');
+	updateError(value: string) {
+		this.error.textContent = value;
 	}
+
+	// close(): void {
+	// 	this.events.emit('orderStepTwo:close');
+	// }
 
 	render(data?: IModalData): HTMLElement {
 		// Костыль
 		if (!data) {
 			data = {};
 		}
+		// Костыль
+		this.container.classList.remove('step-three-modal');
 
 		data.content = this.formContent;
 
@@ -269,6 +321,9 @@ export class OrderStepThreeModal extends Modal {
 		events: IEvents
 	) {
 		super(container, events);
+		// this.container.addEventListener('click', () => {
+		// 	this.events.emit('orderStepThree:close');
+		// });
 		this.formContent = ensureElement<HTMLTemplateElement>(
 			'#success'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;
@@ -282,14 +337,8 @@ export class OrderStepThreeModal extends Modal {
 		);
 
 		this.formButton.addEventListener('click', () => {
-			this.events.emit('order:success');
+			this.events.emit('orderStepThree:close');
 		});
-	}
-
-	// TODO:
-
-	close(): void {
-		this.events.emit('orderStepThree:close');
 	}
 
 	render(data?: IModalData): HTMLElement {
@@ -297,6 +346,9 @@ export class OrderStepThreeModal extends Modal {
 		if (!data) {
 			data = {};
 		}
+
+		// Костыль
+		this.container.classList.add('step-three-modal');
 
 		this.successDescription.textContent = `Списано ${this.model.total} синапсов`;
 

@@ -38,7 +38,7 @@ export class CartModel {
 	}
 
 	reset() {
-		this._cards = [];
+		this.cards = [];
 	}
 }
 
@@ -54,6 +54,9 @@ export class CartView extends Modal {
 	}
 
 	render(data?: IModalData): HTMLElement {
+		// Костыль
+		this.container.classList.remove('step-three-modal');
+
 		const content = ensureElement<HTMLTemplateElement>(
 			'#basket'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;

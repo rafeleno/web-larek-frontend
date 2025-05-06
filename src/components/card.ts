@@ -197,6 +197,9 @@ export class CardModal extends Modal {
 			data = {};
 		}
 
+		// Костыль
+		this.container.classList.remove('step-three-modal');
+
 		this.cardImageElement.src =
 			this.CDN + this._model.image.replace('.svg', '.png');
 		this.cardCategoryElement.textContent = this._model.category;
