@@ -24,7 +24,7 @@ const events = new EventEmitter();
 const CardsApi = new Api(API_URL, settings);
 
 const CardCollectionContainer = ensureElement<HTMLElement>('.gallery');
-const modalContainer = ensureElement<HTMLElement>('#modal-container');
+const modalTemplate = ensureElement<HTMLTemplateElement>('#modal-template');
 
 // Init
 CardsApi.get('/product/').then((res) => {
@@ -57,9 +57,25 @@ CardsApi.get('/product/').then((res) => {
 	return cardsForPost;
 });
 
+const OrderStepOneModalTemplate =
+	modalTemplate.content.firstElementChild.cloneNode(true) as HTMLElement;
+
+const OrderStepTwoModalTemplate =
+	modalTemplate.content.firstElementChild.cloneNode(true) as HTMLElement;
+
+const OrderStepThreeModalTemplate =
+	modalTemplate.content.firstElementChild.cloneNode(true) as HTMLElement;
+
+const cartModalTemplate = modalTemplate.content.firstElementChild.cloneNode(
+	true
+) as HTMLElement;
+const cardModalTemplate = modalTemplate.content.firstElementChild.cloneNode(
+	true
+) as HTMLElement;
+
 // init;
 const ModalCard: CardModal = new CardModal(
-	modalContainer,
+	cardModalTemplate,
 	new Card('666', 'example', 0, 'example', 'example', 'софт-скил'),
 	events,
 	CDN_URL
@@ -72,13 +88,18 @@ events.on('card:click', (data: Card) => {
 	ModalCard.render();
 });
 
-const Cart = new CartModel(CardsApi);
-const CartV = new CartView(
-	modalContainer,
-	Cart,
+const Order = new OrderModel(CardsApi);
 
+const StepOneModal = new OrderStepOneModal(OrderStepOneModalTemplate, events);
+const StepTwoModal = new OrderStepTwoModal(OrderStepTwoModalTemplate, events);
+const stepOneThreeModal = new OrderStepThreeModal(
+	OrderStepThreeModalTemplate,
+	Order,
 	events
 );
+
+const Cart = new CartModel(CardsApi);
+const CartV = new CartView(cartModalTemplate, Cart, events);
 
 events.on('cardModal:buy', (cardModal: CardModal) => {
 	Cart.addCards(cardModal.model.cardData);
@@ -110,12 +131,7 @@ events.on('cart:click', () => {
 });
 HeaderV.render();
 
-const Order = new OrderModel(CardsApi);
-
 // ШАГ 1 -----------------------------------------------------
-
-const StepOneModal = new OrderStepOneModal(modalContainer, events);
-const StepTwoModal = new OrderStepTwoModal(modalContainer, events);
 
 const OrderEmailInput = ensureElement<HTMLInputElement>(
 	'[name="email"]',
@@ -198,29 +214,23 @@ events.on('orderStepTwo:handleNextStep', () => {
 
 // ШАГ 3 -----------------------------------------------------
 
-const stepOneThreeModal = new OrderStepThreeModal(
-	modalContainer,
-	Order,
-	events
-);
-
 events.on('order:success', () => {
 	stepOneThreeModal.close();
 });
 
 events.on('orderStepOne:close', () => {
 	StepOneModal.reset();
-	console.log(300);
+	console.log('orderStepOne:close');
 });
 
 events.on('orderStepTwo:close', () => {
 	StepTwoModal.reset();
-	console.log(200);
+	console.log('orderStepTwo:close');
 });
 
 // events.on('orderStepThree:close', () => {
 // 	Cart.reset();
 // 	Header.updateCounter();
 // 	HeaderV.updateCounter();
-// console.log(100);
+// 	console.log('orderStepThree:close');
 // });

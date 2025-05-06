@@ -180,14 +180,12 @@ export class OrderStepOneModal extends Modal {
 	}
 
 	close(): void {
+		super.close();
 		this.events.emit('orderStepOne:close');
 	}
 
-	render(data?: IModalData): HTMLElement {
-		// Костыль
-		if (!data) {
-			data = {};
-		}
+	// TODO: Сделать так везде
+	render(data: IModalData = {}): HTMLElement {
 		data.content = this.formContent;
 		return super.render(data);
 	}
@@ -242,6 +240,7 @@ export class OrderStepTwoModal extends Modal {
 	}
 
 	close(): void {
+		super.close();
 		this.events.emit('orderStepTwo:close');
 	}
 
@@ -290,6 +289,7 @@ export class OrderStepThreeModal extends Modal {
 	// TODO:
 
 	close(): void {
+		super.close();
 		this.events.emit('orderStepThree:close');
 	}
 
