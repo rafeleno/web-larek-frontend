@@ -206,7 +206,21 @@ const stepOneThreeModal = new OrderStepThreeModal(
 
 events.on('order:success', () => {
 	stepOneThreeModal.close();
-	Cart.reset();
-	Header.updateCounter();
-	HeaderV.updateCounter();
 });
+
+events.on('orderStepOne:close', () => {
+	StepOneModal.reset();
+	console.log(300);
+});
+
+events.on('orderStepTwo:close', () => {
+	StepTwoModal.reset();
+	console.log(200);
+});
+
+// events.on('orderStepThree:close', () => {
+// 	Cart.reset();
+// 	Header.updateCounter();
+// 	HeaderV.updateCounter();
+// console.log(100);
+// });

@@ -17,14 +17,10 @@ export class CartModel {
 		this._cards = [];
 	}
 
-	// async fetchCards(ids: Id[]): Promise<BasketCardData[]> {
-	// 	const requests = ids.map((id) => this.api.get(`/product/${id}`));
-	// 	const data = await Promise.all(requests);
-	// 	return data as BasketCardData[];
-	// }
-
-	addCards(newCards: ICardData): void {
-		this._cards.push(newCards);
+	addCards(newCard: ICardData): void {
+		if (!this._cards.some((card) => card.id === newCard.id)) {
+			this._cards.push(newCard);
+		}
 	}
 
 	removeCards(id: Id): void {
@@ -43,9 +39,6 @@ export class CartModel {
 
 	reset() {
 		this._cards = [];
-
-		console.log('cart._cards');
-		console.log(this._cards);
 	}
 }
 
@@ -79,8 +72,6 @@ export class CartView extends Modal {
 		cards?: BasketCardData[],
 		basketList?: HTMLElement
 	) {
-		console.log(rootElement);
-
 		if (!cards) {
 			cards = this._model.cards;
 		}

@@ -11,13 +11,12 @@ export interface IOrderModel {
 	userPhone: string;
 	userAddress: string;
 	payMethod: TPayMethod;
-
-	addCard(): void;
-	updateField<T extends keyof IOrderModel>(key: T, value: IOrderModel[T]): void;
-	isValid(): boolean;
-	getData(): Partial<IOrderModel>;
-	isComplete(): boolean;
-	reset(): void;
+	// addCard(): void;
+	// updateField<T extends keyof IOrderModel>(key: T, value: IOrderModel[T]): void;
+	// isValid(): boolean;
+	// getData(): Partial<IOrderModel>;
+	// isComplete(): boolean;
+	// reset(): void;
 }
 
 export interface IOrderStepOneView extends IModalData {

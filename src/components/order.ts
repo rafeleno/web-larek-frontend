@@ -120,37 +120,34 @@ export class OrderModel {
 }
 
 export class OrderStepOneModal extends Modal {
+	formContent: HTMLElement;
+	buttonCard: HTMLButtonElement;
+	buttonCash: HTMLButtonElement;
+	addressInput: HTMLInputElement;
+	formButton: HTMLButtonElement;
+
 	constructor(container: HTMLElement, events: IEvents) {
 		super(container, events);
-	}
 
-	// TODO:
-	formContent = ensureElement<HTMLTemplateElement>(
-		'#order'
-	).content.firstElementChild?.cloneNode(true) as HTMLElement;
-	buttonCard = ensureElement<HTMLButtonElement>(
-		'[name="card"]',
-		this.formContent
-	);
-	buttonCash = ensureElement<HTMLButtonElement>(
-		'[name="cash"]',
-		this.formContent
-	);
-	addressInput = ensureElement<HTMLInputElement>(
-		'[name="address"]',
-		this.formContent
-	);
-	// TODO:
-	formButton = ensureElement<HTMLButtonElement>(
-		'.order__button',
-		this.formContent
-	);
-
-	render(data?: IModalData): HTMLElement {
-		// Костыль
-		if (!data) {
-			data = {};
-		}
+		this.formContent = ensureElement<HTMLTemplateElement>(
+			'#order'
+		).content.firstElementChild?.cloneNode(true) as HTMLElement;
+		this.buttonCard = ensureElement<HTMLButtonElement>(
+			'[name="card"]',
+			this.formContent
+		);
+		this.buttonCash = ensureElement<HTMLButtonElement>(
+			'[name="cash"]',
+			this.formContent
+		);
+		this.addressInput = ensureElement<HTMLInputElement>(
+			'[name="address"]',
+			this.formContent
+		);
+		this.formButton = ensureElement<HTMLButtonElement>(
+			'.order__button',
+			this.formContent
+		);
 
 		this.buttonCard.addEventListener('click', () => {
 			this.buttonCard.classList.add('button_alt-active');
@@ -174,8 +171,24 @@ export class OrderStepOneModal extends Modal {
 		this.formButton.addEventListener('click', () => {
 			this.events.emit('orderStepOne:handleNextStep');
 		});
-		data.content = this.formContent;
+	}
 
+	reset() {
+		this.buttonCash.classList.remove('button_alt-active');
+		this.buttonCard.classList.remove('button_alt-active');
+		this.addressInput.value = '';
+	}
+
+	close(): void {
+		this.events.emit('orderStepOne:close');
+	}
+
+	render(data?: IModalData): HTMLElement {
+		// Костыль
+		if (!data) {
+			data = {};
+		}
+		data.content = this.formContent;
 		return super.render(data);
 	}
 }
@@ -183,31 +196,31 @@ export class OrderStepOneModal extends Modal {
 // Второй шаг
 
 export class OrderStepTwoModal extends Modal {
+	formContent: HTMLElement;
+	emailInput: HTMLInputElement;
+	phoneInput: HTMLInputElement;
+	formButton: HTMLButtonElement;
 	constructor(container: HTMLElement, events: IEvents) {
 		super(container, events);
-	}
 
-	// TODO:
-	formContent = ensureElement<HTMLTemplateElement>(
-		'#contacts'
-	).content.firstElementChild?.cloneNode(true) as HTMLElement;
+		// TODO:
+		this.formContent = ensureElement<HTMLTemplateElement>(
+			'#contacts'
+		).content.firstElementChild?.cloneNode(true) as HTMLElement;
 
-	emailInput = ensureElement<HTMLInputElement>(
-		'[name="email"]',
-		this.formContent
-	);
-	phoneInput = ensureElement<HTMLInputElement>(
-		'[name="phone"]',
-		this.formContent
-	);
-	// TODO:
-	formButton = ensureElement<HTMLButtonElement>('.button', this.formContent);
-
-	render(data?: IModalData): HTMLElement {
-		// Костыль
-		if (!data) {
-			data = {};
-		}
+		this.emailInput = ensureElement<HTMLInputElement>(
+			'[name="email"]',
+			this.formContent
+		);
+		this.phoneInput = ensureElement<HTMLInputElement>(
+			'[name="phone"]',
+			this.formContent
+		);
+		// TODO:
+		this.formButton = ensureElement<HTMLButtonElement>(
+			'.button',
+			this.formContent
+		);
 
 		this.emailInput.addEventListener('input', () => {
 			this.events.emit('emailInput:input');
@@ -221,6 +234,22 @@ export class OrderStepTwoModal extends Modal {
 			e.preventDefault();
 			this.events.emit('orderStepTwo:handleNextStep');
 		});
+	}
+
+	reset() {
+		this.phoneInput.value = '';
+		this.emailInput.value = '';
+	}
+
+	close(): void {
+		this.events.emit('orderStepTwo:close');
+	}
+
+	render(data?: IModalData): HTMLElement {
+		// Костыль
+		if (!data) {
+			data = {};
+		}
 
 		data.content = this.formContent;
 
@@ -231,26 +260,38 @@ export class OrderStepTwoModal extends Modal {
 // Третий шаг
 
 export class OrderStepThreeModal extends Modal {
+	formContent: HTMLElement;
+	successDescription: HTMLElement;
+	formButton: HTMLButtonElement;
+
 	constructor(
 		container: HTMLElement,
 		protected model: OrderModel,
 		events: IEvents
 	) {
 		super(container, events);
+		this.formContent = ensureElement<HTMLTemplateElement>(
+			'#success'
+		).content.firstElementChild?.cloneNode(true) as HTMLElement;
+		this.formButton = ensureElement<HTMLButtonElement>(
+			'.order-success__close',
+			this.formContent
+		);
+		this.successDescription = ensureElement<HTMLElement>(
+			'.order-success__description',
+			this.formContent
+		);
+
+		this.formButton.addEventListener('click', () => {
+			this.events.emit('order:success');
+		});
 	}
 
 	// TODO:
-	formContent = ensureElement<HTMLTemplateElement>(
-		'#success'
-	).content.firstElementChild?.cloneNode(true) as HTMLElement;
-	formButton = ensureElement<HTMLButtonElement>(
-		'.order-success__close',
-		this.formContent
-	);
-	successDescription = ensureElement<HTMLElement>(
-		'.order-success__description',
-		this.formContent
-	);
+
+	close(): void {
+		this.events.emit('orderStepThree:close');
+	}
 
 	render(data?: IModalData): HTMLElement {
 		// Костыль
@@ -260,9 +301,6 @@ export class OrderStepThreeModal extends Modal {
 
 		this.successDescription.textContent = `Списано ${this.model.total} синапсов`;
 
-		this.formButton.addEventListener('click', () => {
-			this.events.emit('order:success');
-		});
 		data.content = this.formContent;
 
 		return super.render(data);
