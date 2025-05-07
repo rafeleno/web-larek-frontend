@@ -1,7 +1,7 @@
 import { ICardData, TCategory } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { IEvents } from './base/events';
-import { Id } from './cart';
+import { Id } from '../types';
 import { IModalData, Modal } from './common/modal';
 
 export class Card {

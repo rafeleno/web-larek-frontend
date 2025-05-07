@@ -3,8 +3,7 @@ import { TPayMethod } from '../types/order';
 import { ensureElement } from '../utils/utils';
 import { Api } from './base/api';
 import { IEvents } from './base/events';
-import { Card } from './card';
-import { Id } from './cart';
+import { Id } from '../types';
 import { IModalData, Modal } from './common/modal';
 
 export type OrderData = {

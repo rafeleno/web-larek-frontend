@@ -5,7 +5,7 @@ import {
 	CardCollectionModel,
 	CardCollectionView,
 } from './components/CardCollection';
-import { BasketCardData, CartModel, CartView, Id } from './components/cart';
+import { BasketCardData, CartModel, CartView } from './components/cart';
 import { HeaderModel, HeaderView } from './components/header';
 import {
 	OrderModel,

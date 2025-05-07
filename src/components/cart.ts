@@ -1,11 +1,9 @@
+import { Id } from '../types';
 import { ICardData } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { Api } from './base/api';
 import { IEvents } from './base/events';
 import { IModalData, Modal } from './common/modal';
-
-//TODO: Перенести и сделать общим
-export type Id = string;
 
 export class CartModel {
 	protected _cards: ICardData[];
