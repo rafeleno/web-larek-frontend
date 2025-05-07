@@ -1,4 +1,3 @@
-import { ICardData } from '../types/card';
 import { IEvents } from './base/events';
 import { Card, CardView } from './card';
 

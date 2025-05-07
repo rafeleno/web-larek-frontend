@@ -52,6 +52,7 @@ CardsApi.get('/product/').then((res) => {
 	});
 
 	const CardCollection = new CardCollectionModel(newCards);
+
 	const CrdCollectionView = new CardCollectionView(
 		CardCollectionContainer,
 		CardCollection,
@@ -89,8 +90,12 @@ const CartV = new CartView(
 );
 
 events.on('cardModal:buy', (cardModal: CardModal) => {
+	if (Cart.cards.some((card) => card.id === cardModal.model.cardData.id)) {
+		return;
+	}
 	Cart.addCards(cardModal.model.cardData);
-	cardModal.blockButton(true);
+	cardModal.close();
+
 	HeaderV.updateCounter();
 });
 
@@ -101,6 +106,12 @@ events.on('cardModal:close', (cardModal: CardModal) => {
 events.on('cart:cardRemoved', (data: BasketCardData) => {
 	Cart.removeCards(data.id);
 	CartV.updateCards();
+
+	Cart.checkCartIsEmpty();
+	CartV.disableCartButton(Cart.cartEmptyStatus);
+
+	Header.updateCounter();
+	HeaderV.updateCounter();
 });
 
 events.on('cart:handleNextStep', () => {
@@ -115,6 +126,9 @@ const HeaderV = new HeaderView(headerContainer, Header, events);
 events.on('cart:click', () => {
 	CartV.render();
 	Header.updateCounter();
+
+	Cart.checkCartIsEmpty();
+	CartV.disableCartButton(Cart.cartEmptyStatus);
 });
 HeaderV.render();
 
@@ -173,13 +187,7 @@ events.on('orderStepOne:handleNextStep', () => {
 	StepTwoModal.render();
 	Order.address = OrderAddressInput.value;
 	Order.items = Cart.cards;
-	// Order.addData({
-	// 	address: Order.address,
-	// 	payment: Order.payment,
-	// });
 });
-
-// TODO: Возможно лучне передавать элементы во View(да)
 
 // ШАГ 2 -----------------------------------------------------
 
@@ -210,34 +218,27 @@ events.on('phoneInput:input', validateStepTwo);
 events.on('orderStepTwo:handleNextStep', () => {
 	Order.email = OrderEmailInput.value;
 	Order.phone = OrderPhoneInput.value;
-	// Order.items = Order.addData({ email: Order.email, phone: Order.phone });
-	Order.post();
-	stepThreeModal.render();
+
+	Order.post().then((res) => {
+		console.log(res);
+
+		stepThreeModal.render();
+		Cart.reset();
+		CartV.updateCards();
+		StepOneModal.reset();
+		StepTwoModal.reset();
+		Header.updateCounter();
+		HeaderV.updateCounter();
+		console.log('orderStepThree:close');
+	});
 });
 
 // ШАГ 3 -----------------------------------------------------
 
 const stepThreeModal = new OrderStepThreeModal(modalContainer, Order, events);
 
-// events.on('order:success', () => {
-// });
-
-// events.on('orderStepOne:close', () => {
-// 	StepOneModal.reset();
-// 	console.log('orderStepOne:close');
-// });
-
-// events.on('orderStepTwo:close', () => {
-// 	StepTwoModal.reset();
-// 	console.log('orderStepTwo:close');
-// });
-
 events.on('orderStepThree:close', () => {
 	if (modalContainer.classList.contains('step-three-modal')) {
-		Cart.reset();
-		Header.updateCounter();
-		HeaderV.updateCounter();
 		stepThreeModal.close();
-		console.log('orderStepThree:close');
 	}
 });

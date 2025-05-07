@@ -2,7 +2,6 @@ import { ICardData } from '../types/card';
 import { ensureElement } from '../utils/utils';
 import { Api } from './base/api';
 import { IEvents } from './base/events';
-import { Card } from './card';
 import { IModalData, Modal } from './common/modal';
 
 //TODO: Перенести и сделать общим
@@ -10,7 +9,8 @@ export type Id = string;
 
 export class CartModel {
 	protected _cards: ICardData[];
-	api: Api;
+	protected api: Api;
+	protected _cartEmptyStatus: boolean;
 
 	constructor(api: Api) {
 		this.api = api;
@@ -29,6 +29,16 @@ export class CartModel {
 		});
 	}
 
+	checkCartIsEmpty() {
+		if (this._cards.length === 0) {
+			this._cartEmptyStatus = true;
+		} else {
+			this._cartEmptyStatus = false;
+		}
+	}
+	get cartEmptyStatus() {
+		return this._cartEmptyStatus;
+	}
 	set cards(value: ICardData[]) {
 		this._cards = value;
 	}
@@ -45,60 +55,70 @@ export class CartModel {
 export type BasketCardData = Pick<ICardData, 'id' | 'title' | 'price'>;
 
 export class CartView extends Modal {
+	contentElement: HTMLElement;
+	basketList: HTMLElement;
+	basketButton: HTMLButtonElement;
+
 	constructor(
 		protected container: HTMLElement,
 		private _model: CartModel,
 		protected events: IEvents
 	) {
 		super(container, events);
-	}
 
-	render(data?: IModalData): HTMLElement {
-		// Костыль
-		this.container.classList.remove('step-three-modal');
-
-		const content = ensureElement<HTMLTemplateElement>(
+		this.contentElement = ensureElement<HTMLTemplateElement>(
 			'#basket'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;
-
-		if (!content) throw new Error('Шаблон корзины не найден или пуст');
-
-		const basketList = ensureElement<HTMLElement>('.basket__list', content);
-		const basketButton = ensureElement<HTMLButtonElement>(
+		this.basketList = ensureElement<HTMLTemplateElement>(
+			'.basket__list',
+			this.contentElement
+		) as HTMLElement;
+		this.basketButton = ensureElement<HTMLButtonElement>(
 			'.basket__button',
-			content
+			this.contentElement
 		);
+	}
 
-		basketButton.addEventListener('click', () => {
+	disableCartButton(value: boolean) {
+		if (value) {
+			this.basketButton.disabled = true;
+		} else {
+			this.basketButton.disabled = false;
+		}
+	}
+
+	render(data: IModalData = {}): HTMLElement {
+		this.basketButton.addEventListener('click', () => {
 			this.events.emit('cart:handleNextStep');
 		});
 
-		this.renderCards(this._model.cards, basketList);
+		this.renderCards(this._model.cards);
 
-		if (!data) data = {};
-		data.content = content;
+		data.content = this.contentElement;
 
 		return super.render(data);
 	}
 
+	close(): void {
+		this.basketList.innerHTML = '';
+	}
+
 	updateCards(): void {
-		const basketList = this.container.querySelector(
-			'.basket__list'
-		) as HTMLElement;
-		if (basketList) {
-			basketList.innerHTML = '';
-			this.renderCards(this._model.cards, basketList);
+		if (this.basketList) {
+			this.basketList.innerHTML = '';
+			this.renderCards(this._model.cards);
 		}
 	}
 
-	private renderCards(cards: BasketCardData[], basketList: HTMLElement): void {
-		const basketPriceElement = this.container.querySelector(
-			'.basket__price'
+	private renderCards(cards: BasketCardData[]): void {
+		const basketPriceElement = ensureElement<HTMLTemplateElement>(
+			'.basket__price',
+			this.contentElement
 		) as HTMLElement;
 
 		let total = 0;
 
-		cards.forEach((card) => {
+		cards.forEach((newCard) => {
 			const basketItem = ensureElement<HTMLTemplateElement>(
 				'#card-basket'
 			).content.firstElementChild?.cloneNode(true) as HTMLElement;
@@ -110,19 +130,18 @@ export class CartView extends Modal {
 				basketItem
 			);
 
-			cardTitle.textContent = card.title;
-			cardPrice.textContent = `${card.price} синапсов`;
-			total += Number(card.price);
+			cardTitle.textContent = newCard.title;
+			cardPrice.textContent = `${newCard.price} синапсов`;
+
+			total += Number(newCard.price);
 
 			basketItemDelete.addEventListener('click', () => {
-				this.events.emit('cart:cardRemoved', card);
+				this.events.emit('cart:cardRemoved', newCard);
 			});
 
-			basketList.append(basketItem);
+			this.basketList.append(basketItem);
 		});
 
-		if (basketPriceElement) {
-			basketPriceElement.textContent = `${total} синапсов`;
-		}
+		basketPriceElement.textContent = `${total} синапсов`;
 	}
 }

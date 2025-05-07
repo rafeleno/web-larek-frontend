@@ -145,13 +145,16 @@ export class OrderModel {
 		} else this.phoneValidState = false;
 	}
 
-	// stepTwoIsValid() {
-	// 	console.log(this.emailValidState && this.phoneValidState);
-	// 	return this.emailValidState && this.phoneValidState;
-	// }
-
-	post() {
-		this.api.post('/order', this.postData).then((res) => console.log(res));
+	async post(): Promise<OrderData> {
+		try {
+			const response = (await this.api.post(
+				'/order',
+				this.postData
+			)) as OrderData;
+			return response;
+		} catch (error) {
+			console.error('Ошибка при отправке заказа:', error);
+		}
 	}
 }
 
@@ -217,20 +220,11 @@ export class OrderStepOneModal extends Modal {
 	reset() {
 		this.buttonCash.classList.remove('button_alt-active');
 		this.buttonCard.classList.remove('button_alt-active');
+		this.formButton.disabled = true;
 		this.addressInput.value = '';
 	}
 
-	// close(): void {
-	// 	this.events.emit('orderStepOne:close');
-	// }
-
-	render(data?: IModalData): HTMLElement {
-		// Костыль
-		if (!data) {
-			data = {};
-		}
-		// Костыль
-		this.container.classList.remove('step-three-modal');
+	render(data: IModalData = {}): HTMLElement {
 		data.content = this.formContent;
 		return super.render(data);
 	}
@@ -284,6 +278,7 @@ export class OrderStepTwoModal extends Modal {
 	reset() {
 		this.phoneInput.value = '';
 		this.emailInput.value = '';
+		this.formButton.disabled = true;
 	}
 
 	updateError(value: string) {

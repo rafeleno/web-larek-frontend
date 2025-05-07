@@ -192,11 +192,7 @@ export class CardModal extends Modal {
 		}
 	}
 
-	render(data?: IModalData): HTMLElement {
-		if (!data) {
-			data = {};
-		}
-
+	render(data: IModalData = {}): HTMLElement {
 		// Костыль
 		this.container.classList.remove('step-three-modal');
 
