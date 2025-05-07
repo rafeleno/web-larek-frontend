@@ -52,6 +52,43 @@ export class CartModel {
 
 export type BasketCardData = Pick<ICardData, 'id' | 'title' | 'price'>;
 
+export class BasketItemView {
+	private element: HTMLElement;
+
+	constructor(private card: BasketCardData, private events: IEvents) {
+		const template = ensureElement<HTMLTemplateElement>('#card-basket');
+		this.element = template.content.firstElementChild?.cloneNode(
+			true
+		) as HTMLElement;
+
+		this.init();
+	}
+
+	private init() {
+		const title = ensureElement<HTMLElement>('.card__title', this.element);
+		const price = ensureElement<HTMLElement>('.card__price', this.element);
+		const deleteButton = ensureElement<HTMLButtonElement>(
+			'.basket__item-delete',
+			this.element
+		);
+
+		title.textContent = this.card.title;
+		price.textContent = `${this.card.price} синапсов`;
+
+		deleteButton.addEventListener('click', () => {
+			this.events.emit('cart:cardRemoved', this.card);
+		});
+	}
+
+	get totalPrice(): number {
+		return Number(this.card.price);
+	}
+
+	get content(): HTMLElement {
+		return this.element;
+	}
+}
+
 export class CartView extends Modal {
 	contentElement: HTMLElement;
 	basketList: HTMLElement;
@@ -109,35 +146,16 @@ export class CartView extends Modal {
 	}
 
 	private renderCards(cards: BasketCardData[]): void {
-		const basketPriceElement = ensureElement<HTMLTemplateElement>(
+		const basketPriceElement = ensureElement<HTMLElement>(
 			'.basket__price',
 			this.contentElement
-		) as HTMLElement;
+		);
 
 		let total = 0;
-
-		cards.forEach((newCard) => {
-			const basketItem = ensureElement<HTMLTemplateElement>(
-				'#card-basket'
-			).content.firstElementChild?.cloneNode(true) as HTMLElement;
-
-			const cardTitle = ensureElement<HTMLElement>('.card__title', basketItem);
-			const cardPrice = ensureElement<HTMLElement>('.card__price', basketItem);
-			const basketItemDelete = ensureElement<HTMLButtonElement>(
-				'.basket__item-delete',
-				basketItem
-			);
-
-			cardTitle.textContent = newCard.title;
-			cardPrice.textContent = `${newCard.price} синапсов`;
-
-			total += Number(newCard.price);
-
-			basketItemDelete.addEventListener('click', () => {
-				this.events.emit('cart:cardRemoved', newCard);
-			});
-
-			this.basketList.append(basketItem);
+		cards.forEach((card) => {
+			const itemView = new BasketItemView(card, this.events);
+			this.basketList.append(itemView.content);
+			total += itemView.totalPrice;
 		});
 
 		basketPriceElement.textContent = `${total} синапсов`;
