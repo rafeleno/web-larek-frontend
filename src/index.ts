@@ -213,8 +213,6 @@ events.on('orderStepTwo:handleNextStep', () => {
 	Order.phone = OrderPhoneInput.value;
 
 	Order.post().then((res) => {
-		console.log(res);
-
 		stepThreeModal.render();
 		Cart.reset();
 		cartUI.updateCards();
@@ -222,6 +220,5 @@ events.on('orderStepTwo:handleNextStep', () => {
 		StepTwoModal.reset();
 		Header.updateCounter();
 		HeaderUI.updateCounter();
-		console.log('orderStepThree:close');
 	});
 });

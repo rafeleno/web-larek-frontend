@@ -75,10 +75,8 @@ export class Card {
 	isInCart(cardsInCart: ICardData[]): void {
 		if (cardsInCart.some((card) => card.id === this.id)) {
 			this.isInCartState = true;
-			console.log('this.isInCartState = true');
 		} else {
 			this.isInCartState = false;
-			console.log('this.isInCartState = false');
 		}
 	}
 }
