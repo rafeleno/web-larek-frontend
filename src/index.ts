@@ -1,5 +1,5 @@
 import { Api } from './components/base/api';
-import { EventEmitter, IEvents } from './components/base/events';
+import { EventEmitter } from './components/base/events';
 import { Card, CardModal, CardView } from './components/card';
 import {
 	CardCollectionModel,
@@ -15,24 +15,16 @@ import {
 } from './components/order';
 import './scss/styles.scss';
 import { ICardData } from './types/card';
-
 import { API_URL, CDN_URL, settings } from './utils/constants';
 import { ensureElement } from './utils/utils';
 
 const events = new EventEmitter();
-
 const CardsApi = new Api(API_URL, settings);
 
 const CardCollectionContainer = ensureElement<HTMLElement>('.gallery');
 const modalContainer = ensureElement<HTMLElement>('#modal-container');
-
 const pageElement = ensureElement<HTMLElement>('.page');
-events.on('modal:open', () => {
-	pageElement.classList.add('page_locked');
-});
-events.on('modal:close', () => {
-	pageElement.classList.remove('page_locked');
-});
+const headerContainer = ensureElement<HTMLElement>('header');
 
 // Init
 CardsApi.get('/product/').then((res) => {
@@ -53,7 +45,7 @@ CardsApi.get('/product/').then((res) => {
 
 	const CardCollection = new CardCollectionModel(newCards);
 
-	const CrdCollectionView = new CardCollectionView(
+	const cardColView = new CardCollectionView(
 		CardCollectionContainer,
 		CardCollection,
 		CDN_URL,
@@ -61,12 +53,11 @@ CardsApi.get('/product/').then((res) => {
 		events
 	);
 
-	CrdCollectionView.render();
+	cardColView.render();
 	const cardsForPost = CardCollection.cards;
 	return cardsForPost;
 });
 
-// init;
 const ModalCard: CardModal = new CardModal(
 	modalContainer,
 	new Card('666', 'example', 0, 'example', 'example', 'софт-скил'),
@@ -74,70 +65,17 @@ const ModalCard: CardModal = new CardModal(
 	CDN_URL
 );
 
-events.on('card:click', (data: Card) => {
-	data.isInCart(Cart.cards);
-
-	ModalCard.model = data;
-	ModalCard.render();
-});
-
 const Cart = new CartModel(CardsApi);
-const CartV = new CartView(
-	modalContainer,
-	Cart,
-
-	events
-);
-
-events.on('cardModal:buy', (cardModal: CardModal) => {
-	if (Cart.cards.some((card) => card.id === cardModal.model.cardData.id)) {
-		return;
-	}
-	Cart.addCards(cardModal.model.cardData);
-	cardModal.close();
-
-	HeaderV.updateCounter();
-});
-
-events.on('cardModal:close', (cardModal: CardModal) => {
-	cardModal.blockButton(false);
-});
-
-events.on('cart:cardRemoved', (data: BasketCardData) => {
-	Cart.removeCards(data.id);
-	CartV.updateCards();
-
-	Cart.checkCartIsEmpty();
-	CartV.disableCartButton(Cart.cartEmptyStatus);
-
-	Header.updateCounter();
-	HeaderV.updateCounter();
-});
-
-events.on('cart:handleNextStep', () => {
-	StepOneModal.render();
-});
-
-const headerContainer = ensureElement<HTMLElement>('header');
+const cartUI = new CartView(modalContainer, Cart, events);
 
 const Header = new HeaderModel(Cart);
-const HeaderV = new HeaderView(headerContainer, Header, events);
-
-events.on('cart:click', () => {
-	CartV.render();
-	Header.updateCounter();
-
-	Cart.checkCartIsEmpty();
-	CartV.disableCartButton(Cart.cartEmptyStatus);
-});
-HeaderV.render();
+const HeaderUI = new HeaderView(headerContainer, Header, events);
+HeaderUI.render();
 
 const Order = new OrderModel(CardsApi);
-
-// ШАГ 1 -----------------------------------------------------
-
 const StepOneModal = new OrderStepOneModal(modalContainer, events);
 const StepTwoModal = new OrderStepTwoModal(modalContainer, events);
+const stepThreeModal = new OrderStepThreeModal(modalContainer, Order, events);
 
 const OrderEmailInput = ensureElement<HTMLInputElement>(
 	'[name="email"]',
@@ -171,26 +109,6 @@ function validateStepOne() {
 	}
 }
 
-events.on('order:card', () => {
-	Order.payment = 'non-cash';
-	validateStepOne();
-});
-
-events.on('order:cash', () => {
-	Order.payment = 'cash';
-	validateStepOne();
-});
-
-events.on('addressInput:input', validateStepOne);
-
-events.on('orderStepOne:handleNextStep', () => {
-	StepTwoModal.render();
-	Order.address = OrderAddressInput.value;
-	Order.items = Cart.cards;
-});
-
-// ШАГ 2 -----------------------------------------------------
-
 function validateStepTwo() {
 	Order.emailIsValid(OrderEmailInput.value);
 	Order.phoneIsValid(OrderPhoneInput.value);
@@ -212,6 +130,81 @@ function validateStepTwo() {
 	}
 }
 
+events.on('orderStepThree:close', () => {
+	if (modalContainer.classList.contains('step-three-modal')) {
+		stepThreeModal.close();
+	}
+});
+
+events.on('modal:open', () => {
+	pageElement.classList.add('page_locked');
+});
+events.on('modal:close', () => {
+	pageElement.classList.remove('page_locked');
+});
+
+events.on('addressInput:input', validateStepOne);
+
+events.on('card:click', (data: Card) => {
+	data.isInCart(Cart.cards);
+
+	ModalCard.model = data;
+	ModalCard.render();
+});
+
+events.on('cardModal:buy', (cardModal: CardModal) => {
+	if (Cart.cards.some((card) => card.id === cardModal.model.cardData.id)) {
+		return;
+	}
+	Cart.addCards(cardModal.model.cardData);
+	cardModal.close();
+
+	HeaderUI.updateCounter();
+});
+
+events.on('cardModal:close', (cardModal: CardModal) => {
+	cardModal.blockButton(false);
+});
+
+events.on('cart:cardRemoved', (data: BasketCardData) => {
+	Cart.removeCards(data.id);
+	cartUI.updateCards();
+
+	Cart.checkCartIsEmpty();
+	cartUI.disableCartButton(Cart.cartEmptyStatus);
+
+	Header.updateCounter();
+	HeaderUI.updateCounter();
+});
+
+events.on('cart:handleNextStep', () => {
+	StepOneModal.render();
+});
+
+events.on('order:card', () => {
+	Order.payment = 'non-cash';
+	validateStepOne();
+});
+
+events.on('order:cash', () => {
+	Order.payment = 'cash';
+	validateStepOne();
+});
+
+events.on('cart:click', () => {
+	cartUI.render();
+	Header.updateCounter();
+
+	Cart.checkCartIsEmpty();
+	cartUI.disableCartButton(Cart.cartEmptyStatus);
+});
+
+events.on('orderStepOne:handleNextStep', () => {
+	StepTwoModal.render();
+	Order.address = OrderAddressInput.value;
+	Order.items = Cart.cards;
+});
+
 events.on('emailInput:input', validateStepTwo);
 events.on('phoneInput:input', validateStepTwo);
 
@@ -224,21 +217,11 @@ events.on('orderStepTwo:handleNextStep', () => {
 
 		stepThreeModal.render();
 		Cart.reset();
-		CartV.updateCards();
+		cartUI.updateCards();
 		StepOneModal.reset();
 		StepTwoModal.reset();
 		Header.updateCounter();
-		HeaderV.updateCounter();
+		HeaderUI.updateCounter();
 		console.log('orderStepThree:close');
 	});
-});
-
-// ШАГ 3 -----------------------------------------------------
-
-const stepThreeModal = new OrderStepThreeModal(modalContainer, Order, events);
-
-events.on('orderStepThree:close', () => {
-	if (modalContainer.classList.contains('step-three-modal')) {
-		stepThreeModal.close();
-	}
 });
