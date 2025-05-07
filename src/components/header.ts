@@ -8,8 +8,8 @@ import { CartModel } from './cart';
 export class HeaderModel {
 	protected _productsCount: string;
 
-	constructor(protected CartModel: CartModel) {
-		this.CartModel = CartModel;
+	constructor(protected cartModel: CartModel) {
+		this.cartModel = cartModel;
 		this._productsCount = '0';
 	}
 
@@ -18,7 +18,7 @@ export class HeaderModel {
 	}
 
 	updateCounter(): string {
-		this._productsCount = this.CartModel.cards.length.toString();
+		this._productsCount = this.cartModel.cards.length.toString();
 		return this._productsCount;
 	}
 }
@@ -28,32 +28,34 @@ export class HeaderModel {
 // одно и тоже место(функционал по умолчанию)
 export class HeaderView {
 	logo: string;
+	counter: HTMLElement;
+	content: HTMLElement;
+	cart: HTMLElement;
 
 	constructor(
 		protected container: HTMLElement,
 		protected model: HeaderModel,
 		protected events: IEvents
-	) {}
-
-	render(): HTMLElement {
-		const content = ensureElement<HTMLTemplateElement>(
+	) {
+		this.content = ensureElement<HTMLTemplateElement>(
 			'#header-template'
 		).content.firstElementChild?.cloneNode(true) as HTMLElement;
+		this.counter = ensureElement<HTMLTemplateElement>(
+			'.header__basket-counter',
+			this.content
+		);
+		this.cart = ensureElement<HTMLElement>('.header__basket', this.content);
+	}
 
-		const cart = ensureElement<HTMLElement>('.header__basket', content);
+	render(): HTMLElement {
+		this.cart.addEventListener('click', () => this.events.emit('cart:click'));
 
-		cart.addEventListener('click', () => this.events.emit('cart:click'));
-
-		this.container.append(content);
+		this.container.append(this.content);
 		return this.container;
 	}
 
 	updateCounter(): void {
-		const counter = ensureElement<HTMLTemplateElement>(
-			'.header__basket-counter'
-		);
-
 		// Костыль
-		counter.textContent = this.model.updateCounter();
+		this.counter.textContent = this.model.updateCounter();
 	}
 }
