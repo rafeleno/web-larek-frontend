@@ -97,7 +97,8 @@ export class CartView extends Modal {
 	constructor(
 		protected container: HTMLElement,
 		private _model: CartModel,
-		protected events: IEvents
+		protected events: IEvents,
+		private BasketItemClass: typeof BasketItemView
 	) {
 		super(container, events);
 
@@ -153,7 +154,7 @@ export class CartView extends Modal {
 
 		let total = 0;
 		cards.forEach((card) => {
-			const itemView = new BasketItemView(card, this.events);
+			const itemView = new this.BasketItemClass(card, this.events);
 			this.basketList.append(itemView.content);
 			total += itemView.totalPrice;
 		});

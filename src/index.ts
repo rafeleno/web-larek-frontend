@@ -5,7 +5,12 @@ import {
 	CardCollectionModel,
 	CardCollectionView,
 } from './components/CardCollection';
-import { BasketCardData, CartModel, CartView } from './components/cart';
+import {
+	BasketCardData,
+	BasketItemView,
+	CartModel,
+	CartView,
+} from './components/cart';
 import { HeaderModel, HeaderView } from './components/header';
 import {
 	OrderModel,
@@ -66,7 +71,7 @@ const ModalCard: CardModal = new CardModal(
 );
 
 const Cart = new CartModel(CardsApi);
-const cartUI = new CartView(modalContainer, Cart, events);
+const cartUI = new CartView(modalContainer, Cart, events, BasketItemView);
 
 const Header = new HeaderModel(Cart);
 const HeaderUI = new HeaderView(headerContainer, Header, events);
